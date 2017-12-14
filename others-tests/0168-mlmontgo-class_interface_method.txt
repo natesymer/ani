@@ -1,0 +1,7 @@
+class Sub implements B {
+}
+
+interface B {
+      int top();
+}
+

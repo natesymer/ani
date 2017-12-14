@@ -1,0 +1,6 @@
+void main() {
+     if (foo())                  // condition must evaluate to bool
+        Print("foo was true");
+}
+
+void foo() {}

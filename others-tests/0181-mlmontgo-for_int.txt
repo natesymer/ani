@@ -1,0 +1,8 @@
+void main() {
+     for (; foo(); )        // condition must evaluate to bool
+         Print("infinite");
+}
+
+int foo() {
+    return 2;
+}

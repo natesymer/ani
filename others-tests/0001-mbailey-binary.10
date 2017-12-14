@@ -1,0 +1,6 @@
+// Error: found <int> but expected array
+
+void main() {
+    int array;
+    array[1];
+}

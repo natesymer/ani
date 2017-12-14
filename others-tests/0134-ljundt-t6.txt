@@ -1,0 +1,13 @@
+class A{
+      bool hi(Double type, Stack s){
+      }
+
+}
+
+class Stack{
+}
+
+class B extends A{
+      bool hi(Int more, Stack k){
+      }
+}

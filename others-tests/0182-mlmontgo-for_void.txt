@@ -1,0 +1,6 @@
+void main() {
+     int i;
+     for (; i = 10; ) {  // condition must evaluate to bool
+     	 Print(i);
+     }
+}

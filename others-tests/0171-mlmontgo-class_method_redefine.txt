@@ -1,0 +1,15 @@
+class Stack { 
+      Node Top;
+      int top() {
+      	  return Top.data;
+      }
+      void pop() {
+          Top = Top.next;
+      }
+}
+
+class XtremeStack extends Stack { 
+      double top(double badass) {   // cannot redefine w different types
+          return badass;
+      }
+}

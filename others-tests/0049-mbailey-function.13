@@ -1,0 +1,16 @@
+// Error: found <class A> but expected <class B>
+
+class A {
+}
+
+class B extends A {
+}
+
+void f(A a, B b) {
+}
+
+void main() {
+    A a;
+    B b;
+    f(a, a);
+}

@@ -1,0 +1,14 @@
+string[] myStrings;
+int[][] myGrid;
+stack[] myStacks;
+
+class stack {
+    int p;
+}
+
+void main() {
+    Print(myStrings.length());
+
+    myStrings = NewArray(5, string);
+    myStrings[1] = "hi friend";
+}

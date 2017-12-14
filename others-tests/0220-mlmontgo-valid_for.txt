@@ -1,0 +1,12 @@
+void main() {
+     int i;
+     for (i = 0; i < 10; i = i + 1) {
+     	 Print(i);
+     }
+     for (; true != false; ) {
+         Print("infinite");
+	 if (false)
+	     break;
+     }
+	 
+}

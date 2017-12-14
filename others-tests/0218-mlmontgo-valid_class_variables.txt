@@ -1,0 +1,13 @@
+
+class A {
+      int i;
+}
+
+class B extends A {
+      A a;
+      void foo() {
+         i;        // legal
+         this.i;   // legal
+	 a.i;      // legal
+      }
+}

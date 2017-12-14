@@ -1,0 +1,12 @@
+class stack {
+    int bar() { return 0; }
+}
+
+void foo() {
+    stack s;
+    int stack;
+
+    stack = 3;
+    s.bar();
+    stack = s.bar();
+}

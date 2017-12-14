@@ -1,0 +1,8 @@
+void main() {
+    string[] arr;
+    arr[foo()];
+}
+
+int foo() {
+    return 0;
+}

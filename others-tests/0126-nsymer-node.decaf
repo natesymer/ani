@@ -1,0 +1,35 @@
+/*
+  This should pass the typechecker.
+*/
+
+class BinaryNode {
+  BinaryNode left;
+  BinaryNode right;
+  void init(BinaryNode food, BinaryNode is) {
+    this.left = food;
+    this.right = is;
+  }
+
+  BinaryNode getLeft() {
+    return this.left;
+  }
+
+  BinaryNode getRight() {
+    return this.right;
+  }
+}
+
+void main() {
+  BinaryNode parent;
+  BinaryNode child_left;
+  BinaryNode child_right;
+  
+  parent = New(BinaryNode);
+  child_left = New(BinaryNode);
+  child_right = New(BinaryNode);
+  
+  child_left.init(New(BinaryNode), New(BinaryNode));
+  child_right.init(New(BinaryNode), null);
+
+  parent.init(child_left, child_right);  
+}

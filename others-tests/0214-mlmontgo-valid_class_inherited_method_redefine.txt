@@ -1,0 +1,13 @@
+double foo() {}
+
+class A {
+    double foo() {
+        return 3.0;
+    }
+}
+
+class B extends A {
+    double foo() {     // valid to redefine w matching type signature
+        return 2.0;
+    }
+}

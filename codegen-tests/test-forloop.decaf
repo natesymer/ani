@@ -1,0 +1,33 @@
+void main(string[] args) {
+  int i;
+  int j;
+  int[] temp;
+
+  string[] ints;
+  int[][] intints;
+
+  intints = NewArray(1, int[]);
+  intints[0] = NewArray(3, int);
+  intints[0][0] = 45;
+  intints[0][1] = 46;
+  intints[0][2] = 47;
+
+  for (i = 0; i < intints.length(); i = i + 1) {
+      temp = intints[i];
+      for (j = 0; j < temp.length(); j = j + 1) {
+      	  Print("My number: ", intints[i][j], "\n");
+      }
+  }
+
+  ints = NewArray(5, string);
+  ints[0] = "1";
+  ints[1] = "2";
+  ints[2] = "3";
+  ints[3] = "4";
+  ints[4] = "5";
+  for (i = 0; i < ints.length(); i = i + 1) {
+    Print("Before: ", ints[i], "\n");
+    ints[i] = "after";;
+    Print("After: ", ints[i], "\n");
+  }
+}

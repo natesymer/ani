@@ -1,0 +1,17 @@
+int x;
+
+void main() {
+   double x;
+   x = 4.0;
+}
+
+class foo {
+   string x;
+   void bar() {
+      x = "hey";
+      y = 5;
+      Print(x);
+      Print(y);
+   }
+   int y;       // should be able to declare this here and reference in bar()
+}

@@ -1,0 +1,15 @@
+// Error: field not defined: b
+
+class A {
+    int a;
+    void doit() {
+	this.b;
+    }
+}
+
+class B extends A {
+    int b;
+    void doit2() {
+	this.b;
+    }
+}

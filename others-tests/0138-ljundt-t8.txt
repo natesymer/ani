@@ -1,0 +1,12 @@
+class Runinng{
+      stack i;
+      void check(){
+      	   i = New(stack);
+      }
+
+
+}
+
+class stack{
+
+}

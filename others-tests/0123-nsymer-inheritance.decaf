@@ -1,0 +1,18 @@
+/* should pass */
+
+class Age {
+  int age;
+  int getAge() {
+    return age;
+  }
+}
+
+class Person extends Age {
+  void print() {
+    getAge();
+    Print(age);
+    Print(this.age);
+    Print(getAge());
+    Print(this.getAge());
+  }
+}

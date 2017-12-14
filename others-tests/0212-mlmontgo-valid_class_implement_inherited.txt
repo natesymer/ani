@@ -1,0 +1,9 @@
+class Super {
+      void pop() {}
+}
+
+class Sub extends Super implements A {}
+
+interface A {
+      void pop();
+}

@@ -1,0 +1,13 @@
+
+class A {
+}
+
+class B extends A {
+}
+
+void main() {
+    A a;
+    B b;
+
+    a == a;
+}

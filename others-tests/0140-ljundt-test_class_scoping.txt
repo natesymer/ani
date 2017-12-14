@@ -1,0 +1,12 @@
+class hope{
+      void clone(stack s, double d){	   
+	   double k;
+	   this.i=0;
+      }
+      int i;
+      
+}
+
+class stack{
+
+}

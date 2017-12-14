@@ -1,0 +1,6 @@
+class stack {}
+
+void foo() {
+    stack s;
+    s.bar();
+}

@@ -1,0 +1,18 @@
+// Error: Incompatible types for equality comparison: <class A>, <class C>
+
+class A {
+}
+
+class B extends A {
+}
+
+class C {
+}
+
+void main() {
+    A a;
+    B b;
+    C c;
+
+    a == c;
+}

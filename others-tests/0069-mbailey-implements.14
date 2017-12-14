@@ -1,0 +1,15 @@
+class A {
+}
+
+class B extends A {
+}
+
+interface I {
+    A push(int x);
+}
+
+class C implements I {
+    B push(int x) {
+    }
+}
+

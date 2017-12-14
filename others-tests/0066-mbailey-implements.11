@@ -1,0 +1,16 @@
+// Error: found <class A> but expected <class B>
+class A {
+}
+
+class B extends A {
+}
+
+interface I {
+    void push(A a);
+}
+
+class C implements I {
+    void push(B b) {
+    }
+}
+

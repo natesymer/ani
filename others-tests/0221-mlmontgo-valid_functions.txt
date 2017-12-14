@@ -1,0 +1,13 @@
+int main() {
+    return 2;
+}
+
+void main2() {
+    return;
+}
+
+void yo(int a, int b) {}
+
+int[][] foo() {
+    return NewArray(0, int[]);
+}

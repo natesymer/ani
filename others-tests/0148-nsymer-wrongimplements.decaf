@@ -1,0 +1,9 @@
+interface Foo {
+  void doIt(int a);
+}
+
+class Bar implements Foo {
+  void doIt(bool a) {
+
+  }
+}

@@ -1,0 +1,6 @@
+void main() {
+  int i;
+  for (i = 0; "asdf"; i = i + 1) {
+    Print(i);
+  }
+}

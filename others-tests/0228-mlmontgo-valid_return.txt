@@ -1,0 +1,29 @@
+class A implements C {
+    void foo() {}
+}
+
+class B extends A {}
+
+interface C {
+    void foo();
+}
+
+A ret1() {
+    A a;
+    return a;  // valid since type matches
+}
+
+A ret2() {
+    B b;
+    return b;  // valid since B is subclass of A
+}
+
+C ret3() {
+    A a;
+    return a;  // valid since A implements C
+}
+
+C ret4() {
+    B b;
+    return b;  // valid since B is subclass of A, which implements C
+}

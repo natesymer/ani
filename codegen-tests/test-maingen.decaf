@@ -1,0 +1,89 @@
+/*
+	This is a highly profane file. I hope you're not offended.
+	Sometimes computers are just dumb.
+*/
+
+void main(string[] args) {
+  int two;
+  int fuck;
+  int i;
+  shit = "This is some random shit.";
+  Print("There are ", args.length(), " arguments to this program.\n");
+  for (i = 0; i < args.length(); i = i + 1) {
+    Print("Arg: ", args[i], "\n");
+  }
+  Print("Shit: ", shit, "\n");
+  Print("String `shit' length: ", shit.length(), "\n");
+  two = 67;
+  fuck = you(two);
+  Print("FUCK YOU: ", -1, "\n");
+  Print("fuck: ", fuck, "\n");
+  Print("Here's some logic:\n");
+  Print("1 == 1 = ", 1 == 1, "\n");
+  Print("!false = ", !false, "\n");
+  Print("true && true = ", true && true, "\n");
+  Print("true && false = ", true && false, "\n");
+  Print("false && true = ", false && true, "\n");
+  Print("false && false = ", false && false, "\n");
+  Print("true || true = ", true || true, "\n");
+  Print("false || true = ", false || true, "\n");
+  Print("true || false = ", true || false, "\n");
+  Print("false || false = ", false || false, "\n");
+  Print("true && false || false = ", true && false || false, "\n");
+  Print("Here's some comparison:\n");
+  Print("1 < 2 = ", 1 < 2, "\n");
+  Print("1 > 2 = ", 1 > 2, "\n");
+  Print("1 <= 2 = ", 1 <= 2, "\n");
+  Print("1 >= 2 = ", 1 >= 2, "\n"); 
+  Print("2 >= 2 = ", 2 >= 2, "\n"); 
+  Print("2 <= 2 = ", 2 <= 2, "\n"); 
+  Print("Here's some math:\n");
+  Print("1 + 1 = ", 1 + 1, "\n");
+  Print("70 - 1 + 66 + 3 * 5 = ", 70 - 1 + 66 + 3 * 5, "\n");
+  Print("822 / 2 = ", 822 / 2, "\n");
+  Print("FUCK YEAH MATH!!!\n");
+  Print("Enter a string: ", ReadLine(), "\nEnter an int: ", ReadInteger(), "\n");
+  fuckit();
+}
+
+string shit;
+
+int you(int bitch) {
+  Print("Bitch: ", bitch, "\n");
+  Print("Shit: ", shit, "\n");
+  return 666;
+}
+
+void fuckit() {
+  Foo foo;
+  Print("Let's do some objects guys!!! YOLO!\n");
+  foo = New(Foo);
+  Print("BAR\n");
+  foo.setBar(22);
+  Print("Here's a bar: ", foo.getBar(), "\n");
+  yo(foo);
+}
+
+void yo(Foo f) {
+   Print("Here's some Bar bq: ", getBarBar(f), "\n");
+}
+
+int getBarBar(Bar bq) {
+  return bq.getBar();
+}
+
+interface Bar {
+  void setBar(int newBar);
+  int getBar();
+}
+
+class Foo implements Bar {
+  int bar;
+  void setBar(int newBar) {
+    this.bar = newBar;
+  }
+
+  int getBar() {
+    return this.bar;
+  }
+}

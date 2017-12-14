@@ -1,0 +1,10 @@
+class stack { 
+      Node Top;
+      int top() {
+      	  return Top.data;
+      }
+}
+
+class betterStack extends stack {
+      Double Top;
+}

@@ -1,0 +1,12 @@
+
+class A{
+}
+class B extends A{
+}
+
+
+interface C{
+}
+class D implements C{
+}
+

@@ -1,0 +1,16 @@
+// Error: found <double> but expected <int>
+class A {
+}
+
+class B extends A {
+}
+
+interface I {
+    int push(int x);
+}
+
+class C implements I {
+    double push(int x) {
+    }
+}
+

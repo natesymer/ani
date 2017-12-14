@@ -1,0 +1,7 @@
+class Base {
+  int member;
+}
+
+class Derived extends Base {
+  int member;
+}

@@ -1,0 +1,12 @@
+class A implements C {
+    void foo() {}
+}
+
+interface C {
+    void foo();
+}
+
+A returnA() {
+    C c;
+    return c;  // invalid since can't return an interface in place of class
+}

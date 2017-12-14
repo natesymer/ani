@@ -1,0 +1,6 @@
+class A {
+    int p;
+}
+void main() {
+    this.p;   // must be in class decl
+}

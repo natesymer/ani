@@ -1,0 +1,25 @@
+bool a;
+string b;
+string c;
+
+void main() {
+     if (a)
+     	Print(b);
+     else {
+        c = "not a";
+	Print(c);
+     }
+
+     if (true)
+        a = true;
+
+     if (1 < -1)
+        Print("dead code");
+
+     if (foo())
+        Print("foo was true");
+}
+
+bool foo() {
+     return true;
+}

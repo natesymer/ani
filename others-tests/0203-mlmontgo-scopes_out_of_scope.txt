@@ -1,0 +1,8 @@
+class foo {
+   void bar() {
+      int y;
+   }
+   void boo() {
+      Print(y);
+   }
+}

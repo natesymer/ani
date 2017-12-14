@@ -1,0 +1,8 @@
+class A {}
+
+class B extends A {}
+
+B ret1() {
+    A a;
+    return a;  // invalid since A is superclass of B
+}

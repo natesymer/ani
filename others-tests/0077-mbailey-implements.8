@@ -1,0 +1,13 @@
+// Error: found <int> but expected <double>
+interface I {
+    void push(int x);
+}
+
+class A {
+    void push(double x) {
+    }
+}
+
+class B extends A implements I {
+}
+

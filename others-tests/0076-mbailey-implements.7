@@ -1,0 +1,13 @@
+// Error: formal and actual parameter lists are not of same length
+interface I {
+    void push(int x);
+}
+
+class A {
+    void push(int x, int y) {
+    }
+}
+
+class B extends A implements I {
+}
+

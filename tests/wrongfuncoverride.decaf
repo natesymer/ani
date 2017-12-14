@@ -1,0 +1,12 @@
+class Base {
+  int foo(int input) {
+    Print(input);
+    return 1;
+  }
+}
+
+class Derived extends Base {
+  void foo() {
+
+  }
+}

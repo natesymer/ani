@@ -1,0 +1,5 @@
+int x;          // don't return this x! use the inner x
+int foo() {
+    double x;
+    return x;   // returns double; should return int
+}

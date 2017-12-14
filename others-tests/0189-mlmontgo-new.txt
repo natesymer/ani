@@ -1,0 +1,3 @@
+void foo() {
+    New(stack);
+}

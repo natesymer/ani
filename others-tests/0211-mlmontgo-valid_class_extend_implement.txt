@@ -1,0 +1,35 @@
+
+class plain {
+      int i;
+}
+
+class extendMe extends plain {
+      int p;
+}
+
+class implementMe implements A {
+      int i;
+      void pop() {
+         double d;
+      }
+
+}
+
+interface A {
+      void pop();
+}
+
+class extendAndImplementMe extends extendMe implements A, B {
+      int e;
+      void pop() {
+         double d;
+      }
+      int top() {
+         return 3;
+      }
+}
+
+interface B {
+      int top();
+}
+

@@ -1,0 +1,52 @@
+
+class Stack implements LooksLikeAStack {
+    Node Top;
+    void init() {
+        Top = null;
+    }
+    void push(int x) {
+        Node n;
+        n = New(Node);
+        n.init(x, Top);
+        Top = n;
+    }
+    void pop() {
+        Top = Top.next();
+    }
+    int top() {
+        return Top.data();
+    }
+}
+
+interface LooksLikeAStack {
+    void push(int x);
+    void pop();
+    int top();
+}
+
+class Node {
+    int Data;
+    Node Next;
+
+    void init(int x, Node oldTop) {
+        Data = x;
+        Next = oldTop;
+        Next.data();
+    }
+    int data() {
+        return Data;
+    }
+    Node next() {
+        return Next;
+    }
+}
+
+void test(LooksLikeAStack something) {
+    something.push(10);
+}
+
+void main() {
+    Stack s;
+    s.init();
+    test(s);  // test requires a LooksLikeAStack; we can pass a Stack
+}

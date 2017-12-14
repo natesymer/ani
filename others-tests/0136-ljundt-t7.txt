@@ -1,0 +1,24 @@
+interface Bed{
+	  void climb(int shoe, double math);
+	  int run();
+
+}
+
+
+class B{
+      void smelly(int hi){
+
+      }
+      void climb(int s, double m){
+
+      }
+      int run(){
+      }
+
+}
+
+class C extends B implements Bed{
+      int sleep(int s, double m){
+      }
+
+}

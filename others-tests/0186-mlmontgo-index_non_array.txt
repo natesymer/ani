@@ -1,0 +1,5 @@
+void main() {
+    string s;
+    s = "can't index me";
+    s[3];
+}

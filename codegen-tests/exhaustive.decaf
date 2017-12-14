@@ -1,0 +1,149 @@
+interface Philosopher {
+  int getAge();
+  bool isPhilosopher();
+  bool isSmart();
+  string getName();
+  bool smarterThan(Philosopher p);
+}
+
+class BaseClass {
+  void starprint(string s) {
+    Print("*", s, "*", "\n");
+  }
+}
+
+class SubClass extends BaseClass {
+  int returnInt() {
+    int ret;
+    ret = 1;
+    return ret;
+  }
+}
+
+class Person extends SubClass implements Philosopher {
+  string name;
+  int age;
+  bool argues;
+
+  // TODO: class-level member access (aka optional this)
+
+  // Philosopher
+  int getAge() { return this.age; }
+  string getName() { return name; }
+  bool isPhilosopher() { return this.argues; }
+  bool isSmart() { return this.isPhilosopher() && age < 30; }
+  bool smarterThan(Philosopher p) { return (!p.isSmart() && isSmart())
+                                        || (p.isSmart() && !this.isSmart()); }
+
+  // SuperClass
+  int returnInt() { return add(1, 5); }
+
+  void setName(string aname) {
+    this.name = aname;
+  }
+
+  void setAge(int v) {
+    this.age = v;
+  }
+ 
+  void setArgues(bool v) {
+    this.argues = v;
+  }
+}
+
+class PersonWrapper extends Person {
+}
+
+int add(int a, int b) {
+  return a + b;
+}
+
+void printTheSmarterMan() {
+  Print("The Smarter Man: ", theSmarterMan.getName(), "\n");
+}
+
+Philosopher theSmarterMan;
+
+void main(string[] args) {
+    SubClass sc;
+    BaseClass bc;
+    BaseClass bcTyCompat;
+    PersonWrapper kant;
+    Person wittgenstein;
+    Philosopher p;
+    Philosopher ptwo;
+    string foo;
+    int i;
+
+    Print("There are ", args.length(), " arguments to this program.\n");
+    for (i = 0; i < args.length(); i = i + 1) {
+      Print("Arg: ", args[i], "\n");
+    }
+
+    Print(add(1, 2), "\n");
+
+    wittgenstein = New(Person);
+    wittgenstein.setName("Ludwig Wittgenstein");
+    wittgenstein.setArgues(false);
+    wittgenstein.setAge(21);
+
+    kant = New(PersonWrapper);
+    kant.setName("Immanuel Kant");
+    kant.setArgues(true);
+    kant.setAge(29);
+
+    p = kant;
+    ptwo = wittgenstein;
+
+    Print("Is ", p.getName(), " smarter than ", ptwo.getName(), "? ");
+    if (p.smarterThan(ptwo)) {
+      Print("Most certainly.\n");
+      theSmarterMan = p;
+    } else {
+      Print("No way.\n");
+      theSmarterMan = ptwo;
+    }
+
+    printTheSmarterMan();
+    
+    sc = null;
+
+    if (sc == null) {
+      Print("NULL\n");
+    } else {
+      Print("Something else\n");
+    }
+
+    sc = New(SubClass);
+    bc = New(BaseClass);
+    bcTyCompat = sc;
+
+    bc.starprint("foobar");
+    bcTyCompat.starprint("type compat");
+
+    Print("Here's some logic:\n");
+    Print("1 == 1 = ", 1 == 1, "\n");
+    Print("!false = ", !false, "\n");
+    Print("true && true = ", true && true, "\n");
+    Print("true && false = ", true && false, "\n");
+    Print("false && true = ", false && true, "\n");
+    Print("false && false = ", false && false, "\n");
+    Print("true || true = ", true || true, "\n");
+    Print("false || true = ", false || true, "\n");
+    Print("true || false = ", true || false, "\n");
+    Print("false || false = ", false || false, "\n");
+    Print("true && false || false = ", true && false || false, "\n");
+    Print("Here's some comparison:\n");
+    Print("1 < 2 = ", 1 < 2, "\n");
+    Print("1 > 2 = ", 1 > 2, "\n");
+    Print("1 <= 2 = ", 1 <= 2, "\n");
+    Print("1 >= 2 = ", 1 >= 2, "\n"); 
+    Print("2 >= 2 = ", 2 >= 2, "\n"); 
+    Print("2 <= 2 = ", 2 <= 2, "\n"); 
+    Print("Here's some math:\n");
+    Print("1 + 1 = ", 1 + 1, "\n");
+    Print("70 - 1 + 66 + 3 * 5 = ", 70 - 1 + 66 + 3 * 5, "\n");
+    Print("822 / 2 = ", 822 / 2, "\n");
+    Print("FUCK YEAH MATH!!!\n");
+    Print("Enter a string: ", ReadLine(), "\nEnter an int: ", ReadInteger(), "\n");
+}

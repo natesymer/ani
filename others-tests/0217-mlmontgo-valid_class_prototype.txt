@@ -1,0 +1,13 @@
+interface theInterface {
+      void push(B b);    // requires a B instance
+}
+
+class A implements theInterface {
+      void push(C c) {}  // legal bc C is subclass of B
+}
+
+class B {
+}
+
+class C extends B {
+}

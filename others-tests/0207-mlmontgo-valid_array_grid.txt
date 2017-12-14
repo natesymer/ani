@@ -1,0 +1,7 @@
+int[][] myGrid;
+
+void main() {
+     int i;
+     myGrid = NewArray(5, int[]);
+     i = myGrid[0][0];
+}

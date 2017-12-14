@@ -1,0 +1,7 @@
+void main() {
+    T1[] arr;
+    arr = NewArray(5, T2);  // no subtyping of array types; not compatible
+}
+
+class T1 {}
+class T2 extends T1 {}

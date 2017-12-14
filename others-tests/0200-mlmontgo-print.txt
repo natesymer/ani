@@ -1,0 +1,3 @@
+void foo() {
+    Print(3.0);
+}

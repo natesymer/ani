@@ -1,0 +1,56 @@
+void simple() {
+     int i;
+     double d;
+     string s;
+
+     i = 3;
+     i = -9;
+     //i = 4.0;  // error
+
+     d = 0.3;
+     d = 12.5;
+     //d = 2;    // error
+
+     s = "";
+     s = "hey";
+     //s = d;    // error
+}
+
+class A {
+    int p;
+}
+
+class B extends A {
+    int i;
+}
+
+class C extends B {
+    int g;
+}
+
+class D extends A {
+    int f;
+}
+
+/*
+    A
+   / \
+  B   D
+  |
+  C
+*/
+
+void classPractice() {
+     A a;
+     B b;
+     C c;
+     D d;
+     
+     a = b;    // acceptable
+     //b = a;    // error
+
+     a = c;    // acceptable
+     //c = a;    // error
+
+     //b = d;    // error
+}

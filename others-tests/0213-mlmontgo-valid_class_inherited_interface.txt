@@ -1,0 +1,15 @@
+class Super implements A {
+      void pop() { double d; }
+}
+
+class Sub extends Super implements B {
+      int top() { return 2; }
+}
+
+interface A {
+      void pop();
+}
+
+interface B {
+      int top();
+}

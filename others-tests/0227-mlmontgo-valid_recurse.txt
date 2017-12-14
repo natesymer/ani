@@ -1,0 +1,5 @@
+bool foo(int num) {
+    if (num <= 0)
+        return true;
+    return foo(num - 1);
+}

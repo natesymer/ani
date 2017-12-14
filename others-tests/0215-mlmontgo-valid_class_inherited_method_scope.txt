@@ -1,0 +1,11 @@
+int foo() {}
+
+class A {
+    double foo() {}
+}
+
+class B extends A {
+    double main() {
+        return foo();    // needs to get superclass foo, not global foo
+    }
+}

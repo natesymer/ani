@@ -1,0 +1,3 @@
+class Hopeful extends Nonexistent {
+      int a;
+}

@@ -1,0 +1,6 @@
+int p;
+double d;
+class x {
+      int min(double s)
+      { return 5; }
+      }

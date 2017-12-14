@@ -1,0 +1,24 @@
+void main() {
+     int i;
+     int p;
+     int f;
+     bool b;
+     int[] a;
+     
+     i = 1;  // binary (assign)
+     p = 0;  // binary (assign)
+     -i;     // unary
+     i + p;  // binary (+)
+     p / i;  // binary (/)
+     p % i;  // binary (%)
+     p * i;  // binary (*)
+     
+     f = p - i;       // binary (-, assign)
+     !(f < p);        // unary (!), binary (<)
+     f == p;          // binary (==)
+     b = i >= f + 3;  // binary (assign, >=, +)
+     b = p != 6;      // binary (assign, !=)
+     b && false;      // binary (&&)
+
+     a[3];   // binary ([])
+}

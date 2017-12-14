@@ -1,0 +1,76 @@
+/*
+  This test should pass the typechecker.
+  It tests polymorphism, subclasses, and interfaces.
+*/
+
+interface Stupidity {
+  bool isStupid(int a, BaseClass ignore);
+}
+
+class BaseClass {
+  void base(string name) {
+    Print(name);
+  }
+}
+
+class SubClass extends BaseClass {
+  int fuck() {
+    int ret;
+    ret = 1;
+    return ret;
+  }
+}
+
+class Person extends SubClass implements Stupidity {
+  string name;
+
+  int fuck() {
+    return 0;
+  }
+
+  void doIt(Person p) {
+    Print(p.name);
+  }
+
+  bool isStupid(int a, SubClass ignore) {
+    this.base(this.name);
+    return false;
+  }
+
+  void setName(string aname) {
+    this.name = aname;
+  }
+}
+
+class PersonWrapper extends Person {
+}
+
+int add(int a, int b) {
+  return a + b;
+}
+
+int main() {
+    SubClass sc;
+    BaseClass bc;
+    BaseClass bcTyCompat;
+    PersonWrapper kant;
+    Stupidity smartypants;
+    string foo;
+
+    Print(add(1, 2));
+
+    kant = New(PersonWrapper);
+    kant.setName("Immanuel Kant");
+
+    smartypants = kant;
+    Print("Is Immanuel Kant stupid? ", smartypants.isStupid(1, null));
+
+    sc = New(SubClass);
+    bc = New(BaseClass);
+    bcTyCompat = sc;
+
+    bc.base("foobar");
+    bcTyCompat.base("type compat");
+    
+    return sc.fuck();
+}
