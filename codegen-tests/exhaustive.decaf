@@ -124,6 +124,7 @@ void main(string[] args) {
     Print("Here's some logic:\n");
     Print("1 == 1 = ", 1 == 1, "\n");
     Print("!false = ", !false, "\n");
+    Print("!false && true", !false && true, "\n");
     Print("true && true = ", true && true, "\n");
     Print("true && false = ", true && false, "\n");
     Print("false && true = ", false && true, "\n");

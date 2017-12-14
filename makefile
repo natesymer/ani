@@ -1,20 +1,15 @@
 CXX=g++
-cc=g++
-
-# names for executables & source files for parts of the compiler
-SCANNER_NAME=scanner
-PARSER_NAME=parser
 
 all: ani
 
-ani: $(SCANNER_NAME).cc $(PARSER_NAME).cc $(wildcard *.cc)
+ani: scanner.cc parser.cc $(wildcard *.cc)
 	$(CXX) -g -o $@ $^ -std=c++0x
 
-$(PARSER_NAME).cc $(PARSER_NAME).h: $(PARSER_NAME).y
-	bison -v --warnings=all --defines=$(PARSER_NAME).h -o $(PARSER_NAME).cc $(PARSER_NAME).y
+parser.cc parser.h: parser.y
+	bison -v --warnings=all,error --defines=parser.h -o parser.cc parser.y
 
-$(SCANNER_NAME).h $(SCANNER_NAME).cc: $(SCANNER_NAME).l
-	flex --outfile=$(SCANNER_NAME).cc --header-file=$(SCANNER_NAME).h $(SCANNER_NAME).l
+scanner.h scanner.cc: scanner.l
+	flex --outfile=scanner.cc --header-file=scanner.h scanner.l
 
 clean:
-	/bin/rm -f $(SCANNER_NAME).{h,cc} $(PARSER_NAME).{h,cc,output} *.o ani *.class *.jsm
+	/bin/rm -f scanner.{h,cc} parser.{h,cc,output} *.o ani *.class *.jsm *.j

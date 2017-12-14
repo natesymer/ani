@@ -23,15 +23,15 @@ ASTDecls *tree = new ASTDecls();
 
 %error-verbose
 
-%nonassoc '='
+%precedence '='
 %left TokOR
 %left TokAND
 %left TokEQUAL TokNOTEQUAL
 %nonassoc '<' TokLESSEQUAL '>' TokGREATEREQUAL
 %left '+' '-'
 %left '*' '/' '%'
-%right '!' EXCLAM
-%left '[' '.'
+%precedence '!' EXCLAM // used to be %right
+// %left '[' '.' // apparently not needed... huh
 
 %union {
   Token *token;
