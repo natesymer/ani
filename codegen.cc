@@ -806,8 +806,6 @@ list<string> codegen(string dir, string fileName, ASTDecls* tree) {
     }
   }
 
-  // FIXME: when codegen() takes a filename, open @output@ here.
-
   ASTClassDecl *cd = new ASTClassDecl(fileName, NULL, new Types(), decls);
   cd->isGlobal = true;
   for (auto it = cd->Fields->begin();

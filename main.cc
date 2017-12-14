@@ -121,12 +121,6 @@ void processCommandLine(int argc, char* argv[], bool& scan, bool& parse,
   }
   if (args > 1) {
     outputFileName = argv[optind + 1];
-    /*
-    if (!outputFileName) {
-      cerr << "Error opening file for output: " << argv[optind + 1] << endl;
-      exit(1);
-    }
-    */
   }
 }
     
@@ -159,7 +153,9 @@ int main(int argc, char* argv[]) {
   list<string> fileNames;
   
   if (code) {
-
+    // TODO: improve this interface:
+    //       1. Take input file name and optional output directory for .class files
+    //       2. Maybe just compile classes
     // Find the directory
 
     int slash = outputFileName.rfind('/');
