@@ -1,18 +1,11 @@
 #if !defined(__TOKEN_H__)
-
 #define __TOKEN_H__
 
 #include <iostream>
-//#include "decaf.h"
 
 using namespace std;
 
-#if defined(DECAF_PARSER)
-//#include "AST.h"
-class Token : public AST {
-#else
 class Token {
-#endif
  public:
   Token(int type, string text, string *lineText, int line, int column);
   virtual string toString();

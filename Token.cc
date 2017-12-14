@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "Token.h"
 #include "AST.h"
-#include "TokenNumbers.h"
+#include "parser.h"
 
 using namespace std;
 
@@ -60,17 +60,12 @@ bool ValidTokenType(int type) {
     (256 <= type && type < 300 && map[type] != "<illegal>");
 }
 
-Token::Token(int ty, string txt, std::string *lineTxt, int lin, int col) {
+Token::Token(int ty, string txt, std::string *lineTxt, int lin, int col) 
+: Type(ty), Text(txt), Line(lin), LineText(lineTxt), Column(col) {
   if (!ValidTokenType(ty)) {
     cerr << "Error: Illegal token type: " << ty << endl;
     exit(1);
   }
-
-  Type = ty;
-  Text = txt;
-  Line = lin;
-  LineText = lineTxt;
-  Column = col;
 }
 
 int Token::line() {
@@ -93,35 +88,27 @@ string Token::lineText() {
   return *LineText;
 }
 
-TokString::TokString(string txt, string *lineTxt, int li, int col) :
-  Token(TokStringConst, txt, lineTxt, li, col)
-{
-  Value = txt;
-}
+TokString::TokString(string text, string *lineText, int line, int column)
+  : Token(TokStringConst, text, lineText, line, column), Value(text) {}
 
 string TokString::toString() {
   stringstream ss;
-
-  ss << "StringConst(text = \"" << Text << "\", line = " << Line << ", column = " << Column << ", line text = \"" << *LineText << "\")";
-
+  ss << "StringConst(text = \"" << Text << "\", line = " << Line
+     << ", column = " << Column << ", line text = \"" << *LineText << "\")";
   return ss.str();
- }
+}
 
 string TokString::value() {
   return Value;
 }
 
-TokIdent::TokIdent(string txt, string *lineTxt, int li, int col) :
-  Token(TokID, txt, lineTxt, li, col)
-{
-  Name = txt;
-}
+TokIdent::TokIdent(string text, string *lineText, int line, int column)
+  : Token(TokID, text, lineText, line, column), Name(text) {};
 
 string TokIdent::toString() {
   stringstream ss;
-
-  ss << "ID(" << Name << ", line = " << Line << ", column = " << Column << ", line text = \"" << *LineText << "\")";
-
+  ss << "ID(" << Name << ", line = " << Line << ", column = " << Column
+     << ", line text = \"" << *LineText << "\")";
   return ss.str();
 }
 
@@ -133,19 +120,15 @@ TokInt::TokInt(string txt, string *lineTxt, int li, int col, bool hex) :
   Token(TokIntConst, txt, lineTxt, li, col)
 {
   stringstream ss;
-
-  if (hex)
-    ss << std::hex << txt;
-  else
-    ss << txt;
+  if (hex) ss << std::hex << txt;
+  else     ss << txt;
   ss >> Value;
 }
 
 string TokInt::toString() {
   stringstream ss;
-
-  ss << "IntConst(" << Value << ", text = \"" << Text << "\", line = " << Line << ", column = " << Column << ", line text = \"" << *LineText << "\")";
-
+  ss << "IntConst(" << Value << ", text = \"" << Text << "\", line = " << Line
+     << ", column = " << Column << ", line text = \"" << *LineText << "\")";
   return ss.str();
 }
 
@@ -162,7 +145,6 @@ TokDouble::TokDouble(string txt, string *lineTxt, int li, int col) :
 
 string TokDouble::toString() {
   stringstream ss;
-
   ss << "DoubleConst(" << Value << ", text = \"" << Text << "\", " << Line
      << ", " << Column << ", \"" << *LineText << "\")";
   return ss.str();
@@ -172,21 +154,13 @@ double TokDouble::value() {
   return Value;
 }
 
-TokBool::TokBool(bool val, string *lineTxt, int li, int col) :
-  Token(TokBoolConst, val ? "true" : "false", lineTxt, li, col)
-{
-  Value = val;
-}
+TokBool::TokBool(bool value, string *lineText, int line, int column)
+  : Token(TokBoolConst, value ? "true" : "false", lineText, line, column), Value(value) {};
 
 string TokBool::toString() {
   stringstream ss;
-
-  if (Value)
-    ss << "BoolConst(true";
-  else
-    ss << "BoolConst(false";
-
-  ss << ", line = " << Line << ", column = " << Column << ", line text = \"" << *LineText << "\")";
+  ss << "BoolConst(" << (Value ? "true" : "false") << ", line = " << Line
+     << ", column = " << Column << ", line text = \"" << *LineText << "\")";
   return ss.str();
 }
 
@@ -196,12 +170,6 @@ bool TokBool::value() {
 
 string Token::toString() {
   stringstream ss;
-
-  if (!ValidTokenType(Type)) {
-    cerr << "Error: Illegal token type: " << Type << endl;
-    exit(1);
-  }
-
   ss << "Token(" << "type = " << tokenName(Type) << ", text = \"" << Text 
      << "\", line = " << Line << ", column = " << Column << ", line text = \""
      << *LineText << "\")";

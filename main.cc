@@ -6,9 +6,8 @@
 
 using namespace std;
 
-//#include <decaf.h>
 #include "AST.h"
-#include "TokenNumbers.h"
+#include "parser.h"
 
 ASTDecls* parser(FILE* input);
 bool typecheck(ASTDecls* tree);
