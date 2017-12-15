@@ -67,11 +67,13 @@ static void scanner(FILE* input) {
 
 void processCommandLine(int argc, char* argv[], bool& scan, bool& parse, 
                         bool& typecheck, bool& code, FILE*& input,
-			string& outputFileName) {
+			string& inputFile,
+			string& outputDirectory) {
   scan = parse = typecheck = false;
   input = stdin;
-  outputFileName = "stdout";
-  int c = 'x';
+  inputFile = "";
+  outputDirectory = "./";
+  int c = 0;
 
   while ((c = getopt(argc, argv, "sptc")) != -1) {
     switch (c) {
@@ -113,15 +115,15 @@ void processCommandLine(int argc, char* argv[], bool& scan, bool& parse,
     usage(argv[0]);
 
   if (args > 0) {
+    inputFile = argv[optind];
     input = fopen(argv[optind], "r");
     if (!input) {
       cerr << "Error opening file for input: " << argv[optind] << endl;
       exit(1);
     }
   }
-  if (args > 1) {
-    outputFileName = argv[optind + 1];
-  }
+  if (args > 1)
+    outputDirectory = argv[optind + 1];
 }
     
 int main(int argc, char* argv[]) {
@@ -131,9 +133,10 @@ int main(int argc, char* argv[]) {
   bool type = true;
   bool code = true;
 
-  string outputFileName = "";
+  string inputFile = "";
+  string outputDirectory = "";
 
-  processCommandLine(argc, argv, scan, parse, type, code, yyin, outputFileName);
+  processCommandLine(argc, argv, scan, parse, type, code, yyin, inputFile, outputDirectory);
 
   if (scan) {
     scanner(yyin);
@@ -149,47 +152,23 @@ int main(int argc, char* argv[]) {
   if (type || code)
     if (!typecheck(tree))
       return 1;
-
-  list<string> fileNames;
   
   if (code) {
-    // TODO: improve this interface:
-    //       1. Take input file name and optional output directory for .class files
-    //       2. Maybe just compile classes
-    // Find the directory
+    string mainClassName = inputFile;
+    mainClassName = mainClassName.substr(mainClassName.rfind('/') + 1);
+    mainClassName = mainClassName.substr(0, mainClassName.find('.'));
 
-    int slash = outputFileName.rfind('/');
-    string dir;
+    cout << "Compiling " << mainClassName << " to " << outputDirectory << endl;
 
-    if (slash == -1) {
-      dir = "./";
-    }
-    else {
-      dir = outputFileName.substr(0, slash + 1);
-      outputFileName = outputFileName.substr(slash + 1);
-    }
+    list<string> fileNames = codegen(outputDirectory, mainClassName, tree);
 
-    // Get rid of the extension, if there is one
+    string cmd = "jasmin -d " + outputDirectory;
 
-    int dot = outputFileName.find('.');
-    string extension;
-    if (dot == -1) {
-      extension = "";
-    }
-    else {
-      extension = outputFileName.substr(dot);
-      outputFileName = outputFileName.substr(0, dot);
-    }
+    for (auto it = fileNames.begin();
+	 it != fileNames.end();
+	 it++) cmd += " " + *it;
 
-    cout << "Generating to: " << outputFileName << endl << dir << endl;
-
-    fileNames = codegen(dir, outputFileName, tree);
-
-    for (auto it = fileNames.begin(); it != fileNames.end(); it++) {
-      string name = *it;
-      cerr << "Assembling file " << name << endl;
-      system(("jasmin " + name).c_str());
-    }
+    system(cmd.c_str());
   }
   return 0;
 }

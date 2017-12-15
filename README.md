@@ -13,7 +13,8 @@ running
 
 Run `make`, then:
 
-    ./ani -c infile.decaf infile.jsm
+    ./ani -c infile.decaf # output build products to current directory
+    ./ani -c infile.decaf /tmp # output build products to /tmp
 
 future
 ==
@@ -23,5 +24,5 @@ future
 [ ] super
 [ ] initializers (Probably something like `New(MyClass, "Arg 1", 1, 3)`)
 [ ] direct JVM bytecode output, no more Jasmin
-[ ] better CLI interface
+[x] better CLI interface
 [x] fix bison 3.0 compatibility
