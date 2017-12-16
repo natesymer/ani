@@ -2,32 +2,13 @@
 #include "AST.h"
 
 /*
-  Code Gen
-*/
-
-string ASTDecl::toJVM() {
-  return "";
-}
-
-string ASTReturn::toJVM() {
-  stringstream ss;
-  
-  return ss.str();
-}
-
-string ASTFunctionDecl::toJVM() {
-  stringstream ss;
-  
-  return ss.str();
-}
-
-/*
   Typechecker
  */
 
 ASTDecl * TyInterface::lookupMember(string name) {
-  Types *tys = this->Prototypes;
-  for (auto it = tys->begin(); it != tys->end(); ++it) {
+  for (auto it = Prototypes->begin();
+       it != Prototypes->end();
+       ++it) {
     TyType *t = *it;
     ASTDecl *adecl = dynamic_cast<ASTDecl *>(t);
     if (adecl) {
@@ -38,13 +19,14 @@ ASTDecl * TyInterface::lookupMember(string name) {
 }
 
 ASTDecl * ASTClassDecl::lookupMember(string name) {
-  ASTDecls *decls = this->Fields;
-  for (auto it = decls->begin(); it != decls->end(); ++it) {
+  for (auto it = Fields->begin();
+       it != Fields->end();
+       ++it) {
     ASTDecl *dl = *it;
     if (dl->Name == name) return dl;
   }
-  if (this->BaseClass) {
-    ASTClassDecl *cd = dynamic_cast<ASTClassDecl *>(this->BaseClass);
+  if (BaseClass) {
+    ASTClassDecl *cd = dynamic_cast<ASTClassDecl *>(BaseClass);
     if (cd) return cd->lookupMember(name);
   }
   return NULL;

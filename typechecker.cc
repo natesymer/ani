@@ -109,36 +109,26 @@ bool implements(ASTClassDecl *cls, TyInterface *iface, SymbolTable *scope) {
   Types *ifaces = cls->Interfaces;
   bool v = ifaces->size() == 0;
 
-  for (auto it = ifaces->begin(); it != ifaces->end(); ++it) {
-    *it = resolve(*it, scope);
+  for (auto it = ifaces->begin();
+       it != ifaces->end();
+       ++it) {
     TyType *ty = *it;
     if (is<TyInterface>(ty)) {
       TyInterface *anIface = dynamic_cast<TyInterface *>(ty);
       if (anIface->Name == iface->Name) {
         Types *ps = anIface->Prototypes;
-	if (ps->size() == 0) v = true;
-	else {
-    	  for (auto pit = ps->begin(); pit != ps->end(); ++pit) {
-	    v = v || implementsPrototype(cls, dynamic_cast<TyPrototype *>(*pit), scope);
-          }
+    	for (auto pit = ps->begin();
+	     pit != ps->end();
+	     ++pit) {
+	  v = v || implementsPrototype(cls, dynamic_cast<TyPrototype *>(*pit), scope);
+	  if (!v) break;
         }
       }
     }
+    if (!v) break;
   }
   cout << "Class " << cls->Name << (v ? " implements " : " doesn't implement ") << iface->Name << "." << endl;
   return v;
-}
-
-ASTDecl *lookupMember(ASTDecl *d, string name) {
-  if (is<ASTClassDecl>(d)) {
-    ASTClassDecl *cls = dynamic_cast<ASTClassDecl *>(d);
-    return cls->lookupMember(name);
-  }
-  if (is<TyInterface>(d)) {
-    TyInterface *iface = dynamic_cast<TyInterface *>(d);
-    return iface->lookupMember(name);
-  }
-  return NULL;
 }
 
 bool typeEqual(TyType *left, TyType *right, SymbolTable *scope) {
@@ -177,10 +167,6 @@ bool typeCompat(TyType *left, TyType *right, SymbolTable *scope) {
   return v;
 }
 
-bool hasMember(ASTDecl *decl, string member) {
-  return lookupMember(decl, member) != NULL;
-}
-
 TyType * typeofVarDecl(ASTVarDecl *d, SymbolTable *scope) {
   d->Type = resolve(d->Type, scope);
   return d->Type;
@@ -194,6 +180,10 @@ TyType * typeofFunctionDecl(ASTFunctionDecl *fd, SymbolTable *scope) {
 TyType * typeofPrototype(TyPrototype *pt, SymbolTable *scope) {
   pt->ReturnType = resolve(pt->ReturnType, scope);
   return pt->ReturnType;
+}
+
+TyType * typeofInterface(TyInterface *iface, SymbolTable *scope) {
+  return iface;
 }
 
 // Returns the expected type of an ASTDecl. Performs no typechecking.
@@ -237,8 +227,8 @@ TyType * typeofExpr(ASTExpr *expr, SymbolTable *scope) {
   else if (is<ASTBuiltinPrint>(expr)) v = new TyVoid();
   else if (is<ASTBuiltinNew>(expr)) {
     ASTBuiltinNew *n = dynamic_cast<ASTBuiltinNew *>(expr);
-    v = resolve(n->Type, scope);
-    n->Type = v;
+    n->Type = resolve(n->Type, scope);
+    v = n->Type;
   }
   else if (is<ASTBuiltinNewArray>(expr)) {
     ASTBuiltinNewArray *na = dynamic_cast<ASTBuiltinNewArray *>(expr);
@@ -252,9 +242,9 @@ TyType * typeofExpr(ASTExpr *expr, SymbolTable *scope) {
     if ((is<TyArray>(onType) || is<TyString>(onType))
 	&& funcall->MemberName == "length"
 	&& funcall->Actuals->size() == 0) v = new TyInt();
-    else if (is<ASTDecl>(onType)) {
-      ASTDecl *onDecl = dynamic_cast<ASTDecl *>(onType);
-      ASTDecl *hopefullyFunc = lookupMember(onDecl, funcall->MemberName);
+    else if (is<ASTMemberedDecl>(onType)) {
+      ASTMemberedDecl *onDecl = dynamic_cast<ASTMemberedDecl *>(onType);
+      ASTDecl *hopefullyFunc = onDecl->lookupMember(funcall->MemberName);
       if (is<ASTFunctionDecl>(hopefullyFunc) || is<TyPrototype>(hopefullyFunc)) {
 	v = typeofDecl(hopefullyFunc, scope);
       }
@@ -263,9 +253,9 @@ TyType * typeofExpr(ASTExpr *expr, SymbolTable *scope) {
   else if (is<ASTFieldExpr>(expr)) {
     ASTFieldExpr *fielde = dynamic_cast<ASTFieldExpr *>(expr);
     TyType *onType = typeofExpr(fielde->Left, scope);
-    if (is<ASTDecl>(onType)) {
-      ASTDecl *onDecl = dynamic_cast<ASTDecl *>(onType);
-      ASTDecl *hopefullyVar = lookupMember(onDecl, fielde->Right);
+    if (is<ASTMemberedDecl>(onType)) {
+      ASTMemberedDecl *onDecl = dynamic_cast<ASTMemberedDecl *>(onType);
+      ASTDecl *hopefullyVar = onDecl->lookupMember(fielde->Right);
       if (is<ASTVarDecl>(hopefullyVar)) v = typeofDecl(hopefullyVar, scope);
     }
   }
@@ -339,20 +329,17 @@ bool load_table(ASTDecls *decls, SymbolTable *scope) {
 bool typecheck_formals(ASTDecls *formals, SymbolTable *scope) {
   bool v = true;
 
-  set<string> *names = new set<string>();
-  for (auto it = formals->begin(); it != formals->end(); ++it) {
+  set<string> names;
+  for (auto it = formals->begin();
+       v && it != formals->end();
+       ++it) {
     ASTVarDecl *d = dynamic_cast<ASTVarDecl *>(*it);
-    if (d) {
-      d->Type = resolve(d->Type, scope);
-      if (!is<TyUnknown>(d->Type) && names->count(d->Name) == 0) {
-	names->insert(d->Name);
-        continue;
-      }
-    }
-    v = false;
-    break;
+    v = d
+     && typecheck_decl(d, scope)
+     && !is<TyUnknown>(d->Type)
+     && names.count(d->Name) == 0;
+    if (d) names.insert(d->Name);
   }
-  delete names;
   
   cout << "Formals " << (v ? "passed" : "failed") << ":" << formals << endl;
   return v;
@@ -363,6 +350,8 @@ bool typecheck_args(ASTDecls *formals, ASTExprs *args, SymbolTable *scope) {
   if (!formals) formals = new ASTDecls();
 
   bool v = true;
+  v = v && typecheck_formals(formals, scope);
+
   auto ita = args->begin();
   auto itb = formals->begin();
   while (ita != args->end() && itb != formals->end()) {
@@ -372,10 +361,6 @@ bool typecheck_args(ASTDecls *formals, ASTExprs *args, SymbolTable *scope) {
       break;
     }
     ASTDecl *b = *itb;
-    if (!typecheck_decl(b, scope)) {
-      v = false;
-      break;
-    }
     if (!typeCompat(typeofDecl(b, scope), typeofExpr(a, scope), scope)) {
       v = false;
       break;
@@ -457,8 +442,9 @@ bool typecheck_expr(ASTExpr *expr, SymbolTable *scope) {
       if (is<TyArray>(onType) || is<TyString>(onType)) {
 	v = funcall->MemberName == "length"
 	  && funcall->Actuals->size() == 0;
-      } else if (is<ASTDecl>(onType)) {
-        ASTDecl *hopefullyFunc = lookupMember(dynamic_cast<ASTDecl *>(onType), funcall->MemberName);
+      } else if (is<ASTMemberedDecl>(onType)) {
+	ASTMemberedDecl *onDecl = dynamic_cast<ASTMemberedDecl *>(onType);
+        ASTDecl *hopefullyFunc = onDecl->lookupMember(funcall->MemberName);
         ASTDecls *formals = NULL;
         if (is<ASTFunctionDecl>(hopefullyFunc)) formals = dynamic_cast<ASTFunctionDecl *>(hopefullyFunc)->Formals;
         else if (is<TyPrototype>(hopefullyFunc)) formals = dynamic_cast<TyPrototype *>(hopefullyFunc)->Formals;
@@ -476,9 +462,10 @@ bool typecheck_expr(ASTExpr *expr, SymbolTable *scope) {
     ASTFieldExpr *fielde = dynamic_cast<ASTFieldExpr *>(expr);
     if (typecheck_expr(fielde->Left, scope)) {
       TyType *onType = typeofExpr(fielde->Left, scope);
-      if (is<ASTDecl>(onType) && scope->getClass() && typeCompat(onType, scope->getClass(), scope)) {
+      if (is<ASTMemberedDecl>(onType) && scope->getClass() && typeCompat(onType, scope->getClass(), scope)) {
 	fielde->_LeftDecl = dynamic_cast<ASTDecl *>(onType);
-        ASTDecl *hopefullyVar = lookupMember(fielde->_LeftDecl, fielde->Right);
+	ASTMemberedDecl *onDecl = dynamic_cast<ASTMemberedDecl *>(onType);
+        ASTDecl *hopefullyVar = onDecl->lookupMember(fielde->Right);
         if (is<ASTVarDecl>(hopefullyVar)) {
 	  fielde->_RightDecl = dynamic_cast<ASTVarDecl *>(hopefullyVar);
 	  v = typecheck_decl(hopefullyVar, scope);
@@ -550,10 +537,8 @@ bool typecheck_block(ASTBlock *block, SymbolTable *scope, bool inBreakable, TyTy
 
   bool v = true;
 
-  for (auto it = bdecls->begin(); it != bdecls->end(); ++it) {
-    v = typecheck_decl(*it, scope);
-    if (!v) break;
-  }
+  for (auto it = bdecls->begin(); v && it != bdecls->end(); ++it)
+    v = is<ASTVarDecl>(*it) && typecheck_decl(*it, scope);
 
   if (v) {
     // Create a new scope & load the decls into it.
@@ -624,7 +609,6 @@ bool typecheck_func(ASTFunctionDecl *func, SymbolTable *scope) {
     SymbolTable *formalsScope = new SymbolTable(scope);
     if (load_table(func->Formals, formalsScope)) {
       v = !is<TyUnknown>(func->ReturnType)
-       && typecheck_formals(func->Formals, scope)
        && typecheck_block(func->Block, formalsScope, false, func->ReturnType);
     }
   
@@ -645,6 +629,34 @@ bool typecheck_func(ASTFunctionDecl *func, SymbolTable *scope) {
   func->Class = scope->getClass();
   cout << "Function " << func->Name << (v ? " passes." : " fails.") << endl;
   return v;
+}
+
+bool typecheck_prototype(TyPrototype *pt, SymbolTable *scope) {
+  if (!pt->typechecked) {
+    pt->ReturnType = resolve(pt->ReturnType, scope);
+    pt->typecheckingPassed = !is<TyUnknown>(pt->ReturnType)
+                          && typecheck_formals(pt->Formals, scope);
+    pt->typechecked = true;
+  }
+  cout << "Prototype " << pt->Name << (pt->typecheckingPassed ? " passes." : " fails.") << endl;
+  return pt->typecheckingPassed;
+}
+
+bool typecheck_interface(TyInterface *iface, SymbolTable *scope) {
+  if (!iface->typechecked) {
+    iface->typecheckingPassed = true;
+    for (auto it = iface->Prototypes->begin();
+         it != iface->Prototypes->end();
+         ++it) {
+      TyPrototype *pt = dynamic_cast<TyPrototype *>(*it);
+      iface->typecheckingPassed = pt ? typecheck_decl(pt, scope) : false;
+      if (!iface->typecheckingPassed) break;
+    }
+    iface->typechecked = true;
+  }
+
+  cout << "Interface " << iface->Name << (iface->typecheckingPassed ? " passes." : " fails.") << endl;
+  return iface->typecheckingPassed;
 }
 
 bool typecheck_class(ASTClassDecl *classdecl, SymbolTable *scope) {
@@ -668,12 +680,22 @@ bool typecheck_class(ASTClassDecl *classdecl, SymbolTable *scope) {
       break;
     }
   }
+
+  // Resolve interfaces
+  for (auto it = classdecl->Interfaces->begin();
+       v && it != classdecl->Interfaces->end();
+       ++it) {
+    TyType *resolved = resolve(*it, scope);
+    v = v && is<TyInterface>(resolved) && typecheck_decl(dynamic_cast<TyInterface *>(resolved), scope);
+    *it = v ? resolved : new TyUnknown();
+  }
   
   if (v) {
     // Typecheck class body
     ASTDecls *cbody = classdecl->Fields;
     SymbolTable *classScope = new SymbolTable(scope, classdecl);
-    if (load_table(cbody, classScope)) {
+
+    if ((v = load_table(cbody, classScope))) {
       for (auto it = cbody->begin(); it != cbody->end(); ++it) {
         if (!typecheck_decl(*it, classScope)) {
           v = false;
@@ -695,26 +717,17 @@ bool typecheck_class(ASTClassDecl *classdecl, SymbolTable *scope) {
           }
         }
       }
-    } else v = false;
+    }
+
     delete classScope;
 
-    if (v) {
-      // Check & resolve interfaces.
-      Types *ifaces = classdecl->Interfaces;
-      for (auto it = ifaces->begin(); it != ifaces->end(); ++it) {
-        *it = resolve(*it, scope);
-        if (is<TyInterface>(*it)) {
-	  ASTClassDecl *d = classdecl;
-	  TyInterface *iface = dynamic_cast<TyInterface *>(*it);
-	  v = implements(d, iface, scope);
-	  if (!v) break;
-        } else {
-          v = false;
-          break;
-        }
-      }
-      
-      v = v && noRedefinitions(classdecl->Fields);
+    v = v && noRedefinitions(classdecl->Fields);
+
+    for (auto it = classdecl->Interfaces->begin();
+	 v && it != classdecl->Interfaces->end();
+	 ++it) {
+      TyInterface *iface = dynamic_cast<TyInterface *>(*it);
+      v = iface && implements(classdecl, iface, scope);
     }
   }
 
@@ -722,69 +735,47 @@ bool typecheck_class(ASTClassDecl *classdecl, SymbolTable *scope) {
   return v;
 }
 
-bool typecheck_interface(TyInterface *iface, SymbolTable *scope) {
-  Types *ps = iface->Prototypes;
-  bool v = true;
-
-  for (auto it = ps->begin(); it != ps->end(); ++it) {
-    if (is<TyPrototype>(*it)) {
-      TyPrototype *pt = dynamic_cast<TyPrototype *>(*it);
-      if (!typecheck_decl(pt, scope)) {
-	v = false;
-	break;
-      }
-    } else {
-      v = false;
-      break;
-    }
-  }
-
-  cout << "Interface " << iface->Name << (v ? " passes." : " fails.") << endl;
-  return v;
-}
-
-bool typecheck_prototype(TyPrototype *pt, SymbolTable *scope) {
-  bool v = true;
-  pt->ReturnType = resolve(pt->ReturnType, scope);
-  if (is<TyUnknown>(pt->ReturnType)) v = false;
-  else {
-    for (auto it = pt->Formals->begin(); it != pt->Formals->end(); ++it) {
-      if (!typecheck_decl(*it, scope)) {
-	v = false;
-	break;
-      }
-    }
-  }
-  cout << "Prototype " << pt->Name << (v ? " passes." : " fails.") << endl;
-  return v;
-}
-
 bool typecheck_var_decl(ASTVarDecl *vd, SymbolTable *scope) {
-  vd->Class = scope->getClass();
-  vd->Type = resolve(vd->Type, scope);
-
-  bool v = !(is<TyUnknown>(vd->Type) || is<TyVoid>(vd->Type));
-  if (v && scope->isClassScope()) {
-    ASTClassDecl *cls = scope->getClass();
-    if (cls->BaseClass && is<ASTClassDecl>(cls->BaseClass)) {
-      ASTClassDecl *supercls = dynamic_cast<ASTClassDecl *>(cls->BaseClass);
-      v = !hasMember(supercls, vd->Name);
+  bool v = vd->typecheckingPassed;
+  if (!vd->typechecked) {
+    vd->Class = scope->getClass();
+    vd->Type = resolve(vd->Type, scope);
+    
+    v = !is<TyUnknown>(vd->Type) && !is<TyVoid>(vd->Type);
+    
+    if (v && is<ASTDecl>(vd->Type)) {
+      ASTDecl *d = dynamic_cast<ASTDecl *>(vd->Type);
+      v = typecheck_decl(d, scope);
     }
+    
+    if (v && scope->isClassScope()) {
+      ASTClassDecl *cls = scope->getClass();
+      if (cls->BaseClass && is<ASTClassDecl>(cls->BaseClass)) {
+        ASTClassDecl *supercls = dynamic_cast<ASTClassDecl *>(cls->BaseClass);
+        v = !supercls->lookupMember(vd->Name);
+      }
+    }
+    vd->typecheckingPassed = v;
+    vd->typechecked = true;
   }
+
   cout << "VariableDeclaration " << vd->Name << (v ? " passes." : " fails.")  << endl;
   return v;
 }
 
 bool typecheck_decl(ASTDecl *decl, SymbolTable *scope) {
-  if (is<ASTVarDecl>(decl)) return typecheck_var_decl(dynamic_cast<ASTVarDecl *>(decl), scope);
-  if (is<ASTFunctionDecl>(decl)) return typecheck_func(dynamic_cast<ASTFunctionDecl *>(decl), scope);
-  if (is<TyPrototype>(decl)) return typecheck_prototype(dynamic_cast<TyPrototype *>(decl), scope);
-  if (scope->isGlobal()) {
-    if (is<ASTClassDecl>(decl)) return typecheck_class(dynamic_cast<ASTClassDecl *>(decl), scope);
-    if (is<TyInterface>(decl)) return typecheck_interface(dynamic_cast<TyInterface *>(decl), scope);
-  }
-  cout << "Unknown/Unexpected Declaration: " << decl->Name << endl;
-  return false;
+  if (decl->typechecked) return decl->typecheckingPassed;
+  if (scope->pointsToCurrentDecl(decl)) return true;
+  SymbolTable *declscope = new SymbolTable(scope, decl);
+  bool v = false;
+  if (is<ASTVarDecl>(decl)) v = typecheck_var_decl(dynamic_cast<ASTVarDecl *>(decl), declscope);
+  else if (is<ASTFunctionDecl>(decl)) v = typecheck_func(dynamic_cast<ASTFunctionDecl *>(decl), declscope);
+  else if (is<TyPrototype>(decl)) v = typecheck_prototype(dynamic_cast<TyPrototype *>(decl), declscope);
+  else if (is<ASTClassDecl>(decl)) v = typecheck_class(dynamic_cast<ASTClassDecl *>(decl), declscope);
+  else if (is<TyInterface>(decl)) v = typecheck_interface(dynamic_cast<TyInterface *>(decl), declscope);
+  decl->typechecked = true;
+  decl->typecheckingPassed = v;
+  return v;
 }
 
 // Entry point of typechecker.
@@ -794,11 +785,10 @@ bool typecheck(ASTDecls *decls) {
   bool v = false;
   if (load_table(decls, global_scope)) {
     v = true;
-    for (auto it = decls->begin(); it != decls->end(); ++it) {
-      if (!typecheck_decl(*it, global_scope)) {
-        v = false;
-        break;
-      }
+    for (auto it = decls->begin();
+	 v && it != decls->end();
+	 ++it) {
+      v = typecheck_decl(*it, global_scope);
     }
   }
   cout << "typechecking " << (v ? "succeeded." : "failed.") << endl;

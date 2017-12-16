@@ -1,0 +1,17 @@
+class Foo {
+      void doIt() {
+      	   Print("I'm a superclass / ");
+      }
+}
+
+class Bar extends Foo {
+      void doIt() {
+      	   Print("I'm a subclass / ");
+      }
+}
+
+void main(string[] args) {
+     Bar bar;
+     bar = New(Bar);
+     bar.doIt();
+}

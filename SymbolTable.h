@@ -9,19 +9,23 @@ using namespace std;
 
 class SymbolTable {
   public:
-    SymbolTable() : parent(NULL), currentClass(NULL) {};
-    SymbolTable(SymbolTable *table) : parent(table), currentClass(NULL) {};
-    SymbolTable(SymbolTable *table, ASTClassDecl *cls)
-      : parent(table), currentClass(cls) {};
+    SymbolTable() : parent(NULL), currentDecl(NULL) {};
+    SymbolTable(ASTDecl *decl) : parent(NULL), currentDecl(decl) {};
+    SymbolTable(SymbolTable *table) : parent(table), currentDecl(NULL) {};
+    SymbolTable(SymbolTable *table, ASTDecl *decl)
+      : parent(table), currentDecl(decl) {};
     bool isGlobal();
     ASTDecl *declaration_of(string name);
     void add(string name, ASTDecl *d);
     ASTClassDecl *getClass();
+    ASTDecl *getCurrentDecl();
+    SymbolTable *getGlobal();
     bool isClassScope();
+    bool pointsToCurrentDecl(Base *b);
   private:
     unordered_map<string, ASTDecl *> declarations;
     SymbolTable *parent;
-    ASTClassDecl *currentClass;
+    ASTDecl *currentDecl;
 };
 
 #endif

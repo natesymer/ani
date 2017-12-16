@@ -10,33 +10,49 @@
 #include "Base.h"
 #include "Types.h"
 
-// Used by Professor Bailey's output routines
-
-void indent();
-void unindent();
-
 // This is the base type for Abstract Syntax Trees. All AST's extend this
 // class (or a class that extends it)
 
 class AST: public Base {
  public:
+  AST() : typechecked(false), typecheckingPassed(false) {};
   virtual string toString() = 0;
+  bool typechecked;
+  bool typecheckingPassed;
 };
 
 // A base class representing declarations
 
 class ASTDecl : public AST {
  public:
-  ASTDecl(string name) : Name(name) {};
+  ASTDecl(string name) : AST(), Name(name) {};
   virtual string toString() = 0;
-  virtual string toJVM();
   string Name;
+};
+
+// A base class for declarations that can exist in classes
+
+class ASTClassDecl;
+
+class ASTClassableDecl : public ASTDecl {
+ public:
+  ASTClassableDecl(string name) : ASTDecl(name), Class(NULL) {};
+  ASTClassDecl *Class;
+};
+
+// A base class for declarations that can contain members
+
+class ASTMemberedDecl : public ASTDecl {
+ public:
+  ASTMemberedDecl(string name) : ASTDecl(name) {};
+  virtual ASTDecl *lookupMember(string name) = 0;
 };
 
 // A base class representing statements
 
 class ASTStmt : public AST {
  public:
+  ASTStmt() : AST() {};
   virtual string toString() = 0;
 };
 
@@ -44,7 +60,7 @@ class ASTStmt : public AST {
 
 class ASTExpr : public ASTStmt {
  public:
-  ASTExpr() : ExprType(NULL) {};
+  ASTExpr() : ASTStmt(), ExprType(NULL) {};
   virtual string toString();
   virtual bool isEmpty() { return true; };
   TyType *ExprType;
@@ -299,7 +315,7 @@ class ASTVariable : public ASTDeclExpr {
 class ASTIf : public ASTStmt {
  public:
   ASTIf(ASTExpr* cond, ASTStmt* then, ASTStmt* elsePart)
-    : Cond(cond), Then(then), ElsePart(elsePart) {};
+    : ASTStmt(), Cond(cond), Then(then), ElsePart(elsePart) {};
   virtual string toString();
   virtual bool hasPointerTo(Base *base, set<Base *> *seen);
   ASTExpr* Cond;
@@ -311,7 +327,7 @@ class ASTIf : public ASTStmt {
 
 class ASTWhile : public ASTStmt {
  public:
-  ASTWhile(ASTExpr* cond, ASTStmt* stmt) : Cond(cond), Stmt(stmt) {};
+  ASTWhile(ASTExpr* cond, ASTStmt* stmt) : ASTStmt(), Cond(cond), Stmt(stmt) {};
   virtual string toString();
   virtual bool hasPointerTo(Base *base, set<Base *> *seen);
   ASTExpr* Cond;
@@ -323,7 +339,7 @@ class ASTWhile : public ASTStmt {
 class ASTFor : public ASTStmt {
  public:
   ASTFor(ASTExpr* init, ASTExpr* cond, ASTExpr* incr, ASTStmt* stmt)
-    : Init(init), Cond(cond), Incr(incr), Stmt(stmt) {};
+    : ASTStmt(), Init(init), Cond(cond), Incr(incr), Stmt(stmt) {};
   virtual string toString();
   virtual bool hasPointerTo(Base *base, set<Base *> *seen);
   ASTExpr* Init;
@@ -336,6 +352,7 @@ class ASTFor : public ASTStmt {
 
 class ASTBreak : public ASTStmt {
  public:
+  ASTBreak() : ASTStmt() {};
   virtual string toString();
  private:
 };
@@ -344,18 +361,17 @@ class ASTBreak : public ASTStmt {
 
 class ASTReturn : public ASTStmt {
  public:
-  ASTReturn(ASTExpr* expr) : Expr(expr) {};
+  ASTReturn(ASTExpr* expr) : ASTStmt(), Expr(expr) {};
   virtual string toString();
   virtual bool hasPointerTo(Base *base, set<Base *> *seen);
   ASTExpr* Expr;
-  virtual string toJVM();
 };
 
 // A block of statements surrounded by { }
 
 class ASTBlock : public ASTStmt {
  public:
-  ASTBlock(ASTDecls* decls, ASTStmts* stmts) : Decls(decls), Stmts(stmts) {};
+  ASTBlock(ASTDecls* decls, ASTStmts* stmts) : ASTStmt(), Decls(decls), Stmts(stmts) {};
   virtual string toString();
   virtual bool hasPointerTo(Base *base, set<Base *> *seen);
   ASTDecls* Decls;
@@ -364,10 +380,10 @@ class ASTBlock : public ASTStmt {
 
 // A class declaration and definition
 
-class ASTClassDecl : public ASTDecl, public TyNamedType {
+class ASTClassDecl : public ASTMemberedDecl, public TyNamedType {
  public:
   ASTClassDecl(string name, TyType* baseClass, Types* interfaces, ASTDecls* fields)
-   : ASTDecl(name), isGlobal(false), BaseClass(baseClass), Interfaces(interfaces), Fields(fields) {};
+   : ASTMemberedDecl(name), isGlobal(false), BaseClass(baseClass), Interfaces(interfaces), Fields(fields) {};
   virtual string toString();
   virtual bool hasPointerTo(Base *base, set<Base *> *seen);
   ASTDecl *lookupMember(string name);
@@ -375,12 +391,6 @@ class ASTClassDecl : public ASTDecl, public TyNamedType {
   TyType* BaseClass;
   Types* Interfaces;
   ASTDecls* Fields;
-};
-
-class ASTClassableDecl : public ASTDecl {
- public:
-  ASTClassableDecl(string name) : ASTDecl(name), Class(NULL) {};
-  ASTClassDecl *Class;
 };
 
 // A variable declaration
@@ -401,7 +411,6 @@ class ASTFunctionDecl : public ASTClassableDecl {
    : ASTClassableDecl(name), ReturnType(returnType), Formals(formals), Block(block) {};
   virtual string toString();
   virtual bool hasPointerTo(Base *base, set<Base *> *seen);
-  virtual string toJVM();
   TyType* ReturnType;
   ASTDecls* Formals;
   ASTBlock* Block;
@@ -421,10 +430,10 @@ class TyPrototype : public ASTDecl, public TyType {
 
 // An interface type
 
-class TyInterface : public ASTDecl, public TyNamedType {
+class TyInterface : public ASTMemberedDecl, public TyNamedType {
  public:
   TyInterface(string name, Types* prototypes)
-    : ASTDecl(name), Prototypes(prototypes) {};
+    : ASTMemberedDecl(name), Prototypes(prototypes) {};
   virtual string toString();
   virtual bool hasPointerTo(Base *base, set<Base *> *seen);
   ASTDecl *lookupMember(string name);
