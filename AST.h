@@ -387,6 +387,7 @@ class ASTClassDecl : public ASTMemberedDecl, public TyNamedType {
   virtual string toString();
   virtual bool hasPointerTo(Base *base, set<Base *> *seen);
   ASTDecl *lookupMember(string name);
+  ASTClassDecl *superClass();
   bool isGlobal; // Whether or not the class is "THE" class.
   TyType* BaseClass;
   Types* Interfaces;

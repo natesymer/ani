@@ -32,6 +32,10 @@ ASTDecl * ASTClassDecl::lookupMember(string name) {
   return NULL;
 }
 
+ASTClassDecl * ASTClassDecl::superClass() {
+  return dynamic_cast<ASTClassDecl *>(BaseClass);
+}
+
 // TODO: inf loop causes segfault when a type has a member that is also a type.
 // solution: the below function
 
