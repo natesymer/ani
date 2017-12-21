@@ -1,0 +1,31 @@
+interface Iface {
+  ReturnValue doIt(ReturnValue rv);
+}
+
+class ReturnValue {
+
+}
+
+class SubclassedReturnValue extends ReturnValue {
+
+}
+
+class ImplementingClass implements Iface {
+  ReturnValue doIt(ReturnValue rv) {
+    return rv;
+  }
+}
+
+void main() {
+     SubclassedReturnValue srv;
+     ReturnValue rv;
+     Iface ifa;
+     ImplementingClass ic;
+
+     ic = New(ImplementingClass);
+
+     srv = New(SubclassedReturnValue);
+     rv = srv;
+     
+     rv = ic.doIt(srv);
+}

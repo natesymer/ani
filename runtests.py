@@ -1,5 +1,8 @@
 #!/usr/bin/python3
 
+# Runs typechecker tests
+# ./runtests.py ./ani tests/tcheck/
+
 import sys
 import os
 from subprocess import Popen, PIPE, STDOUT, DEVNULL
@@ -9,7 +12,7 @@ if len(sys.argv) != 3:
   exit(0)
 
 decaf_executable = sys.argv[1]
-tests_dir = sys.argv[2] #"~mbailey/310/tcheck/"
+tests_dir = sys.argv[2]
 
 decaf_executable = os.path.abspath(os.path.expanduser(decaf_executable))
 tests_dir = os.path.abspath(os.path.expanduser(tests_dir))

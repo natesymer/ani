@@ -7,7 +7,29 @@
 #include "SymbolTable.h"
 #include "Base.h"
 
+/*
+  TODO: test:
+  - Interface implementation return types
+  - Interface implementation formal types
+*/
+
 using namespace std;
+
+bool compareTypes(Types *a, Types *b, bool (*compare)(TyType *, TyType *));
+bool typeEqual(TyType *left, TyType *right);
+bool typeCompat(TyType *left, TyType *right);
+
+bool hasMember(ASTDecl *decl, string member);
+TyType * typeofDecl(ASTDecl *d, SymbolTable *scope);
+TyType * typeofExpr(ASTExpr *expr, SymbolTable *scope);
+bool load_table(ASTDecls *decls, SymbolTable *scope);
+bool typecheck_expr(ASTExpr *expr, SymbolTable *scope);
+bool typecheck_block(ASTBlock *block, SymbolTable *scope, bool inBreakable, TyType *returnType = NULL);
+bool typecheck_stmt(ASTStmt *stmt, SymbolTable *scope, bool inBreakable = false);
+bool typecheck_func(ASTFunctionDecl *func, SymbolTable *scope);
+bool typecheck_class(ASTClassDecl *classdecl, SymbolTable *scope);
+bool typecheck_decl(ASTDecl *decl, SymbolTable *scope);
+bool typecheck(ASTDecls *decls);
 
 template<typename T>
 bool is(Base *v) {
@@ -23,6 +45,10 @@ TyType * resolve(TyType *t, SymbolTable *scope) {
     TyType *v = dynamic_cast<TyType *>(res);
     if (!v || !is<TyNamedType>(v)) v = new TyUnknown();
     return v;
+  } else if (is<TyArray>(t)) {
+    TyArray *tn = dynamic_cast<TyArray *>(t);
+    tn->Type = resolve(tn->Type, scope);
+    return tn;
   }
   return t;
 }
@@ -74,38 +100,36 @@ Types *formalsToTypes(ASTDecls *d) {
   return ret;
 }
 
-bool typesEqual(Types *a, Types *b, SymbolTable *scope) {
-  return compareTypes(a, b, scope, &typeEqual);
+bool typesEqual(Types *a, Types *b) {
+  return compareTypes(a, b, &typeEqual);
 }
 
-bool typesCompat(Types *a, Types *b, SymbolTable *scope) {
-  return compareTypes(a, b, scope, &typeCompat);
+bool typesCompat(Types *a, Types *b) {
+  return compareTypes(a, b, &typeCompat);
 }
 
-bool compareTypes(Types *a, Types *b, SymbolTable *scope, bool (*compare)(TyType *, TyType *, SymbolTable *)) {
+bool compareTypes(Types *a, Types *b, bool (*compare)(TyType *, TyType *)) {
   for (auto ita = a->begin(), itb = b->begin();
        ita != a->end() && itb != b->end();
        ++ita, ++itb) {
-    if (!compare(*ita, *itb, scope)) return false;
+    if (!compare(*ita, *itb)) return false;
   }
   return a->size() == b->size();
 }
 
-bool implementsPrototype(ASTClassDecl *cls, TyPrototype *ptype, SymbolTable *scope) {
+bool implementsPrototype(ASTClassDecl *cls, TyPrototype *ptype) {
   bool v = false;
   ASTDecl *member = cls->lookupMember(ptype->Name);
   if (is<ASTFunctionDecl>(member)) {
     ASTFunctionDecl *f = dynamic_cast<ASTFunctionDecl *>(member);
-    ptype->ReturnType = resolve(ptype->ReturnType, scope);
-    f->ReturnType = resolve(f->ReturnType, scope);
-    v = typeCompat(ptype->ReturnType, f->ReturnType, scope)
-     && typesCompat(formalsToTypes(f->Formals), formalsToTypes(ptype->Formals), scope);
+    v = typeCompat(ptype->ReturnType, f->ReturnType)
+     && typesCompat(formalsToTypes(f->Formals), formalsToTypes(ptype->Formals));
   }
   cout << "Class " << cls->Name << " " << (v ? "implements" : "doesn't implement") << " " << dynamic_cast<ASTDecl *>(ptype) << endl;
   return v;
 }
 
-bool implements(ASTClassDecl *cls, TyInterface *iface, SymbolTable *scope) {
+bool implements(ASTClassDecl *cls, TyInterface *iface) {
   Types *ifaces = cls->Interfaces;
   bool v = ifaces->size() == 0;
 
@@ -120,7 +144,7 @@ bool implements(ASTClassDecl *cls, TyInterface *iface, SymbolTable *scope) {
     	for (auto pit = ps->begin();
 	     pit != ps->end();
 	     ++pit) {
-	  v = v || implementsPrototype(cls, dynamic_cast<TyPrototype *>(*pit), scope);
+	  v = v || implementsPrototype(cls, dynamic_cast<TyPrototype *>(*pit));
 	  if (!v) break;
         }
       }
@@ -131,26 +155,21 @@ bool implements(ASTClassDecl *cls, TyInterface *iface, SymbolTable *scope) {
   return v;
 }
 
-bool typeEqual(TyType *left, TyType *right, SymbolTable *scope) {
+bool typeEqual(TyType *left, TyType *right) {
   bool v = true;
   if (is<TyNamedType>(left) && is<TyNull>(right)) v = true; // Null is equal to all named types.
   else if (is<ASTClassDecl>(left) && is<ASTClassDecl>(right)) v = sameClass(dynamic_cast<ASTClassDecl *>(left),
                                      					    dynamic_cast<ASTClassDecl *>(right));
   else if (is<TyUnknown>(left) || is<TyUnknown>(right)) v = false;
   else if (is<TyArray>(left) && is<TyArray>(right)) {
-    TyArray *l = dynamic_cast<TyArray *>(left);
-    TyArray *r = dynamic_cast<TyArray *>(right);
-    l->Type = resolve(l->Type, scope);
-    r->Type = resolve(r->Type, scope);
-    v = typeEqual(l->Type,
-	          r->Type, 
-		  scope);
+    v = typeEqual(dynamic_cast<TyArray *>(left)->Type,
+	          dynamic_cast<TyArray *>(right)->Type);
   } else v = typeid(*left) == typeid(*right);
-  cout << "Types " << (v ? "equal" : "not equal") << ": " << left << " " << right << endl;
+  cout << "Types " << (v ? "" : "not ") << "equal: " << left << " " << right << endl;
   return v;
 }
 
-bool typeCompat(TyType *left, TyType *right, SymbolTable *scope) {
+bool typeCompat(TyType *left, TyType *right) {
   bool v = false;
   if (is<ASTClassDecl>(right)) {
     if (is<ASTClassDecl>(left)) v = sameClass(dynamic_cast<ASTClassDecl *>(left),
@@ -158,10 +177,12 @@ bool typeCompat(TyType *left, TyType *right, SymbolTable *scope) {
 				 || subclassOf(dynamic_cast<ASTClassDecl *>(left),
 					       dynamic_cast<ASTClassDecl *>(right));
     else if (is<TyInterface>(left)) v = implements(dynamic_cast<ASTClassDecl *>(right),
-				         	   dynamic_cast<TyInterface *>(left),
-						   scope);
+				         	   dynamic_cast<TyInterface *>(left));
+  } else if (is<TyArray>(left) && is<TyArray>(right)) {
+    v = typeCompat(dynamic_cast<TyArray *>(left)->Type,
+	           dynamic_cast<TyArray *>(right)->Type);
   }
-  else if (typeEqual(left, right, scope)) v = true; // First check for type equality.
+  else if (typeEqual(left, right)) v = true; // First check for type equality.
   cout << "Types " << (v ? "compatible" : "incompatible") << ": " << left << " " << right << endl; 
   return v;
 }
@@ -360,7 +381,7 @@ bool typecheck_args(ASTDecls *formals, ASTExprs *args, SymbolTable *scope) {
       break;
     }
     ASTDecl *b = *itb;
-    if (!typeCompat(typeofDecl(b, scope), typeofExpr(a, scope), scope)) {
+    if (!typeCompat(typeofDecl(b, scope), typeofExpr(a, scope))) {
       v = false;
       break;
     }
@@ -420,9 +441,9 @@ bool typecheck_expr(ASTExpr *expr, SymbolTable *scope) {
       }
       else {
 	TyType *t = typeofExpr(pe, scope);
-	if (!(typeEqual(t, new TyString(), scope)
-	      || typeEqual(t, new TyInt(), scope)
-	      || typeEqual(t, new TyBool(), scope))) {
+	if (!(typeEqual(t, new TyString())
+	      || typeEqual(t, new TyInt())
+	      || typeEqual(t, new TyBool()))) {
 	  v = false;
 	  break;
 	}
@@ -461,7 +482,7 @@ bool typecheck_expr(ASTExpr *expr, SymbolTable *scope) {
     ASTFieldExpr *fielde = dynamic_cast<ASTFieldExpr *>(expr);
     if (typecheck_expr(fielde->Left, scope)) {
       TyType *onType = typeofExpr(fielde->Left, scope);
-      if (is<ASTMemberedDecl>(onType) && scope->getClass() && typeCompat(onType, scope->getClass(), scope)) {
+      if (is<ASTMemberedDecl>(onType) && scope->getClass() && typeCompat(onType, scope->getClass())) {
 	fielde->_LeftDecl = dynamic_cast<ASTDecl *>(onType);
 	ASTMemberedDecl *onDecl = dynamic_cast<ASTMemberedDecl *>(onType);
         ASTDecl *hopefullyVar = onDecl->lookupMember(fielde->Right);
@@ -479,10 +500,10 @@ bool typecheck_expr(ASTExpr *expr, SymbolTable *scope) {
       TyType *t = typeofExpr(u->Left, scope);
       switch (u->Op) {
         case OpNot:
-	  v = typeEqual(t, new TyBool(), scope);
+	  v = typeEqual(t, new TyBool());
 	  break;
         case OpSubtract:
-  	  v = typeEqual(t, new TyInt(), scope) || typeEqual(t, new TyDouble(), scope);
+  	  v = typeEqual(t, new TyInt()) || typeEqual(t, new TyDouble());
 	  break;
         default: {}
       }
@@ -495,7 +516,7 @@ bool typecheck_expr(ASTExpr *expr, SymbolTable *scope) {
       TyType *r = typeofExpr(b->Right, scope);
       switch (b->Op) {
         case OpAssign:
-          v = typeCompat(l, r, scope);
+          v = typeCompat(l, r);
 	  break;
         case OpAdd:
         case OpSubtract:
@@ -506,21 +527,21 @@ bool typecheck_expr(ASTExpr *expr, SymbolTable *scope) {
         case OpLessEqual:
         case OpGreater:
         case OpGreaterEqual:
-          v = (typeEqual(l, new TyInt(), scope) && typeEqual(r, new TyInt(), scope))
-           || (typeEqual(l, new TyDouble(), scope) && typeEqual(r, new TyDouble(), scope));
+          v = (typeEqual(l, new TyInt()) && typeEqual(r, new TyInt()))
+           || (typeEqual(l, new TyDouble()) && typeEqual(r, new TyDouble()));
 	  break;
         case OpEqual:
         case OpNotEqual:
-          v = typeCompat(l, r, scope) || typeCompat(r, l, scope);
+          v = typeCompat(l, r) || typeCompat(r, l);
 	  break;
         case OpLogicalAnd:
         case OpLogicalOr:
-	  v = typeEqual(l, new TyBool(), scope)
- 	   && typeEqual(r, new TyBool(), scope);
+	  v = typeEqual(l, new TyBool())
+ 	   && typeEqual(r, new TyBool());
 	  break;
         case OpIndex:
           v = is<TyArray>(l)
- 	   && typeEqual(r, new TyInt(), scope);
+ 	   && typeEqual(r, new TyInt());
 	  break;
         default: {}
       }
@@ -551,7 +572,7 @@ bool typecheck_block(ASTBlock *block, SymbolTable *scope, bool inBreakable, TyTy
 
         if (returnType && is<ASTReturn>(s)) {
           ASTReturn *r = dynamic_cast<ASTReturn *>(s);
-	  v = typeCompat(returnType, typeofExpr(r->Expr, blockscope), blockscope);
+	  v = typeCompat(returnType, typeofExpr(r->Expr, blockscope));
 	  if (!v) break;
         }
       }
@@ -572,20 +593,20 @@ bool typecheck_stmt(ASTStmt *stmt, SymbolTable *scope, bool inBreakable) {
   else if (is<ASTBreak>(stmt) && inBreakable) v = true;
   else if (is<ASTIf>(stmt)) {
     ASTIf *casted = dynamic_cast<ASTIf *>(stmt);
-    v = typeEqual(typeofExpr(casted->Cond, scope), new TyBool(), scope)
+    v = typeEqual(typeofExpr(casted->Cond, scope), new TyBool())
      && typecheck_expr(casted->Cond, scope)
      && typecheck_stmt(casted->Then, scope, inBreakable)
      && typecheck_stmt(casted->ElsePart, scope, inBreakable);
   }
   else if (is<ASTWhile>(stmt)) {
     ASTWhile *casted = dynamic_cast<ASTWhile *>(stmt);
-    v = typeEqual(typeofExpr(casted->Cond, scope), new TyBool(), scope)
+    v = typeEqual(typeofExpr(casted->Cond, scope), new TyBool())
      && typecheck_expr(casted->Cond, scope)
      && typecheck_stmt(casted->Stmt, scope, true);
   }
   else if (is<ASTFor>(stmt)) {
     ASTFor *casted = dynamic_cast<ASTFor *>(stmt);
-    v = typeEqual(typeofExpr(casted->Cond, scope), new TyBool(), scope)
+    v = typeEqual(typeofExpr(casted->Cond, scope), new TyBool())
      && typecheck_expr(casted->Init, scope)
      && typecheck_expr(casted->Cond, scope)
      && typecheck_expr(casted->Incr, scope)
@@ -620,7 +641,7 @@ bool typecheck_func(ASTFunctionDecl *func, SymbolTable *scope) {
       ASTDecl *member = supercls->lookupMember(func->Name);
       if (member && is<ASTFunctionDecl>(member)) {
         ASTFunctionDecl *memFunc = dynamic_cast<ASTFunctionDecl *>(member);
-        v = typesEqual(formalsToTypes(memFunc->Formals), formalsToTypes(func->Formals), scope);
+        v = typesEqual(formalsToTypes(memFunc->Formals), formalsToTypes(func->Formals));
       }
     }
   }
@@ -689,8 +710,8 @@ bool typecheck_class(ASTClassDecl *classdecl, SymbolTable *scope) {
 
 	  if (is<ASTFunctionDecl>(baseClassDecl) && onClassFn) {
 	    ASTFunctionDecl *bcfd = dynamic_cast<ASTFunctionDecl *>(baseClassDecl);
-	    v = typeEqual(bcfd->ReturnType, onClassFn->ReturnType, scope)
-	     && typesEqual(formalsToTypes(bcfd->Formals), formalsToTypes(onClassFn->Formals), scope);
+	    v = typeEqual(bcfd->ReturnType, onClassFn->ReturnType)
+	     && typesEqual(formalsToTypes(bcfd->Formals), formalsToTypes(onClassFn->Formals));
 	    if (!v) break;
 	  } else if (baseClassDecl) {
 	    v = false;
@@ -709,7 +730,7 @@ bool typecheck_class(ASTClassDecl *classdecl, SymbolTable *scope) {
        v && it != classdecl->Interfaces->end();
        ++it) {
     TyInterface *iface = dynamic_cast<TyInterface *>(*it);
-    v = iface && implements(classdecl, iface, scope);
+    v = iface && implements(classdecl, iface);
   }
 
   cout << "Class " << classdecl->Name << (v ? " passes." : " fails.") << endl;

@@ -1,0 +1,16 @@
+void fubar(Fuck[] foo) {
+     
+}
+
+class Shit extends Fuck {
+
+}
+
+class Fuck {
+
+}
+
+void main() {
+  Shit[] tryMe;
+  fubar(tryMe);
+}
