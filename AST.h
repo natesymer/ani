@@ -28,6 +28,7 @@ class ASTDecl : public AST {
   ASTDecl(string name) : AST(), Name(name) {};
   virtual string toString() = 0;
   string Name;
+  bool sameAs(ASTDecl *cls);
 };
 
 // A base class for declarations that can exist in classes
@@ -388,10 +389,11 @@ class ASTClassDecl : public ASTMemberedDecl, public TyNamedType {
   virtual bool hasPointerTo(Base *base, set<Base *> *seen);
   ASTDecl *lookupMember(string name);
   ASTClassDecl *superClass();
-  bool isGlobal; // Whether or not the class is "THE" class.
   TyType* BaseClass;
   Types* Interfaces;
   ASTDecls* Fields;
+  bool isGlobal; // Whether or not the class is "THE" class.
+  bool subclassOf(ASTClassDecl *parent);
 };
 
 // A variable declaration

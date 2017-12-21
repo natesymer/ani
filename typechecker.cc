@@ -69,25 +69,6 @@ bool noRedefinitions(ASTDecls *ds) {
   return v;
 }
 
-bool sameClass(ASTClassDecl *parent, ASTClassDecl *child) {
-  return parent->Name == child->Name;
-}
-
-// Returns whether or not child is a subclass of parent
-bool subclassOf(ASTClassDecl *parent, ASTClassDecl *child) {
-  bool v = false;
-  for (ASTClassDecl *ptr = child;
-       ptr;
-       ptr = dynamic_cast<ASTClassDecl *>(ptr->BaseClass)) {
-    if (sameClass(ptr, parent)) {
-      v = true;
-      break;
-    }
-  }
-  cout << child->Name << (v ? " is" : " isn't") << " a subclass of " << parent->Name << "." << endl;
-  return v;
-}
-
 Types *formalsToTypes(ASTDecls *d) {
   Types *ret = new Types();
   if (d) {
@@ -131,35 +112,34 @@ bool implementsPrototype(ASTClassDecl *cls, TyPrototype *ptype) {
 
 bool implements(ASTClassDecl *cls, TyInterface *iface) {
   Types *ifaces = cls->Interfaces;
-  bool v = ifaces->size() == 0;
+  bool v = true;
 
   for (auto it = ifaces->begin();
-       it != ifaces->end();
+       v && it != ifaces->end();
        ++it) {
     TyType *ty = *it;
     if (is<TyInterface>(ty)) {
       TyInterface *anIface = dynamic_cast<TyInterface *>(ty);
-      if (anIface->Name == iface->Name) {
+      if (anIface->sameAs(iface)) {
         Types *ps = anIface->Prototypes;
     	for (auto pit = ps->begin();
-	     pit != ps->end();
+	     v && pit != ps->end();
 	     ++pit) {
-	  v = v || implementsPrototype(cls, dynamic_cast<TyPrototype *>(*pit));
-	  if (!v) break;
+	  v = implementsPrototype(cls, dynamic_cast<TyPrototype *>(*pit));
         }
       }
     }
-    if (!v) break;
   }
+
   cout << "Class " << cls->Name << (v ? " implements " : " doesn't implement ") << iface->Name << "." << endl;
   return v;
 }
 
 bool typeEqual(TyType *left, TyType *right) {
   bool v = true;
-  if (is<TyNamedType>(left) && is<TyNull>(right)) v = true; // Null is equal to all named types.
-  else if (is<ASTClassDecl>(left) && is<ASTClassDecl>(right)) v = sameClass(dynamic_cast<ASTClassDecl *>(left),
-                                     					    dynamic_cast<ASTClassDecl *>(right));
+  if (is<TyNamedType>(left) && is<TyNull>(right)) v = true; // Null is "equal" to all named types.
+  else if (is<ASTClassDecl>(left) && is<ASTClassDecl>(right))
+    v = dynamic_cast<ASTClassDecl *>(left)->sameAs(dynamic_cast<ASTClassDecl *>(right));
   else if (is<TyUnknown>(left) || is<TyUnknown>(right)) v = false;
   else if (is<TyArray>(left) && is<TyArray>(right)) {
     v = typeEqual(dynamic_cast<TyArray *>(left)->Type,
@@ -172,12 +152,12 @@ bool typeEqual(TyType *left, TyType *right) {
 bool typeCompat(TyType *left, TyType *right) {
   bool v = false;
   if (is<ASTClassDecl>(right)) {
-    if (is<ASTClassDecl>(left)) v = sameClass(dynamic_cast<ASTClassDecl *>(left),
-					      dynamic_cast<ASTClassDecl *>(right))
-				 || subclassOf(dynamic_cast<ASTClassDecl *>(left),
-					       dynamic_cast<ASTClassDecl *>(right));
-    else if (is<TyInterface>(left)) v = implements(dynamic_cast<ASTClassDecl *>(right),
-				         	   dynamic_cast<TyInterface *>(left));
+    if (is<ASTClassDecl>(left)) {
+      ASTClassDecl *parent = dynamic_cast<ASTClassDecl *>(left);
+      ASTClassDecl *child = dynamic_cast<ASTClassDecl *>(right);
+      v = child->subclassOf(parent);
+    } else if (is<TyInterface>(left)) v = implements(dynamic_cast<ASTClassDecl *>(right),
+				         	     dynamic_cast<TyInterface *>(left));
   } else if (is<TyArray>(left) && is<TyArray>(right)) {
     v = typeCompat(dynamic_cast<TyArray *>(left)->Type,
 	           dynamic_cast<TyArray *>(right)->Type);
@@ -681,7 +661,7 @@ bool typecheck_class(ASTClassDecl *classdecl, SymbolTable *scope) {
   while (v && cd && cd->BaseClass) {
     cd->BaseClass = resolve(cd->BaseClass, scope);
     ASTClassDecl *resolved = dynamic_cast<ASTClassDecl *>(cd->BaseClass);
-    v = resolved && !sameClass(resolved, classdecl);
+    v = resolved && !resolved->sameAs(classdecl);
     cd = resolved;
   }
 

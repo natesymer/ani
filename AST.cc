@@ -5,6 +5,24 @@
   Typechecker
  */
 
+bool ASTDecl::sameAs(ASTDecl *d) {
+  return this->Name == d->Name;
+}
+
+bool ASTClassDecl::subclassOf(ASTClassDecl *parent) {
+  bool v = false;
+  for (ASTClassDecl *ptr = this;
+       ptr;
+       ptr = dynamic_cast<ASTClassDecl *>(ptr->BaseClass)) {
+    if (ptr->sameAs(parent)) {
+      v = true;
+      break;
+    }
+  }
+  cout << this->Name << (v ? " is" : " isn't") << " a subclass of " << parent->Name << "." << endl;
+  return v;
+}
+
 ASTDecl * TyInterface::lookupMember(string name) {
   for (auto it = Prototypes->begin();
        it != Prototypes->end();
