@@ -109,6 +109,7 @@ ASTDecls *tree = new ASTDecls();
 %token <token> TokSTRING
 %token <tok_string> TokStringConst
 %token <token> TokTHIS
+%token <token> TokSUPER
 %token <tok_ident> TokTYPEID
 %token <token> TokVOID
 %token <token> TokWHILE
@@ -201,6 +202,7 @@ OpsLValue : OpsLValue '.' TokID                { $$ = new ASTFieldExpr($1, $3->n
           ;
 OpsEnd : Constant
        | TokTHIS                                   { $$ = new ASTThis(); }
+       | TokSUPER                                  { $$ = new ASTSuper(); }
        | TokID                                     { $$ = new ASTVariable($1->name()); }
        | TokID '(' ')'                             { $$ = new ASTFunctionCall($1->name(), new ASTExprs()); }
        | TokID '(' OpsCSV ')'                      { $$ = new ASTFunctionCall($1->name(), $3); }

@@ -1,0 +1,18 @@
+class Base {
+  void doIt() {
+    Print("Base");
+  }
+}
+
+class Sub extends Base {
+  void doIt() {
+    super.doIt();
+    Print("Sub");
+  }
+}
+
+void main() {
+  Sub s;
+  s = New(Sub);
+  s.doIt();
+}

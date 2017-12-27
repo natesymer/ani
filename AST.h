@@ -301,6 +301,14 @@ class ASTThis : public ASTExpr {
   virtual bool isEmpty() { return false; };
 };
 
+// An object for `super'.
+
+class ASTSuper : public ASTExpr {
+ public:
+  virtual string toString();
+  virtual bool isEmpty() { return false; };
+};
+
 // A variable reference
 
 class ASTVariable : public ASTDeclExpr {

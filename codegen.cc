@@ -343,8 +343,9 @@ void codegenMemberFunctionCall(ASTMemberFunctionCall *fc, CGScope *gs) {
     ASTFunctionDecl *fn = NULL;
     TyPrototype *ptype = NULL;
     if ((fn = dynamic_cast<ASTFunctionDecl *>(fc->Decl))) {
-      *gs << "\tinvokevirtual\t";
-      codegenFunctionSignature(fn->Class->Name, fn->Name, fn->Formals, fn->ReturnType, gs);
+      bool isSuper = dynamic_cast<ASTSuper *>(fc->Object) != NULL;
+      *gs << (isSuper ? "\tinvokespecial\t" : "\tinvokevirtual\t");
+      codegenFunctionSignature(onDecl->Name, fn->Name, fn->Formals, fn->ReturnType, gs);
     } else if ((ptype = dynamic_cast<TyPrototype *>(fc->Decl))) {
       *gs << "\tinvokeinterface\t";
       codegenFunctionSignature(onDecl->Name, ptype->Name, ptype->Formals, ptype->ReturnType, gs);
@@ -424,6 +425,7 @@ void codegenExpr(ASTExpr *e, CGScope *gs) {
   ASTVariable *var = NULL;
   if ((p = dynamic_cast<ASTBuiltinPrint *>(e))) codegenBuiltinPrint(p, gs);
   else if (dynamic_cast<ASTThis *>(e)) *gs << "\taload_0\n";
+  else if (dynamic_cast<ASTSuper *>(e)) *gs << "\taload_0\n";
   else if (dynamic_cast<ASTNullConst *>(e)) *gs << "\taconst_null\n";
   else if ((bc = dynamic_cast<ASTBoolConst *>(e))) codegenBoolConst(bc, gs);
   else if ((strc = dynamic_cast<ASTStringConst *>(e))) *gs << "\tldc\t" << strc->Value << "\n";

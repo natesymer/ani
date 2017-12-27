@@ -243,7 +243,9 @@ TyType * typeofExpr(ASTExpr *expr, SymbolTable *scope) {
   }
   else if (is<ASTThis>(expr) && scope->getClass())
     v = scope->getClass();
-  else if (is<ASTUnaryExpr>(expr))
+  else if (is<ASTSuper>(expr) && scope->getClass() && scope->getClass()->BaseClass) {
+    v = scope->getClass()->BaseClass;
+  } else if (is<ASTUnaryExpr>(expr))
     v = typeofExpr(dynamic_cast<ASTUnaryExpr *>(expr)->Left, scope);
   else if (is<ASTBinaryExpr>(expr)) {
     ASTBinaryExpr *b = dynamic_cast<ASTBinaryExpr *>(expr);
@@ -425,6 +427,7 @@ bool typecheck_expr(ASTExpr *expr, SymbolTable *scope) {
     }
   }
   else if (is<ASTThis>(expr)) v = scope->getClass() != NULL;
+  else if (is<ASTSuper>(expr)) v = scope->getClass() != NULL && scope->getClass()->BaseClass != NULL;
   else if (is<ASTUnaryExpr>(expr)) {
     ASTUnaryExpr *u = dynamic_cast<ASTUnaryExpr *>(expr);
     if (typecheck_expr(u->Left, scope)) {

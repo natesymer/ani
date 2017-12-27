@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <stdarg.h>
+#include "Token.h"
 #include "AST.h"
 #include "parser.h"
 
@@ -113,6 +114,7 @@ int identTokType() {
   if (strcmp(s, "string") == 0) return TokSTRING;
   if (strcmp(s, "extends") == 0) return TokEXTENDS;
   if (strcmp(s, "this") == 0) return TokTHIS;
+  if (strcmp(s, "super") == 0) return TokSUPER;
   if (strcmp(s, "while") == 0) return TokWHILE;
   if (strcmp(s, "break") == 0) return TokBREAK;
   if (strcmp(s, "ReadInteger") == 0) return TokREADINTEGER;

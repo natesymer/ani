@@ -559,6 +559,10 @@ string ASTThis::toString() {
   return "ASTThis";
 }
 
+string ASTSuper::toString() {
+  return "ASTSuper";
+}
+
 string ASTVariable::toString() {
   stringstream ss;
   ss << "ASTVariable(" << Name << ")";

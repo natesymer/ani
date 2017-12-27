@@ -1,0 +1,22 @@
+class Base {
+  void doIt() {
+    Print("Base\n");
+  }
+
+  void printFoo() {
+    Print("Foo\n");
+  }
+}
+
+class Sub extends Base {
+  void doIt() {
+    super.doIt();
+    Print("Sub\n");
+  }
+}
+
+void main() {
+  Sub s;
+  s = New(Sub);
+  s.doIt();
+}
