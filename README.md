@@ -19,10 +19,10 @@ Run `make`, then:
 future
 ==
 
-[ ] Overloaded functions
-[ ] Functions as first-class citizens
-[ ] super
-[ ] initializers (Probably something like `New(MyClass, "Arg 1", 1, 3)`)
-[ ] direct JVM bytecode output, no more Jasmin
-[x] better CLI interface
-[x] fix bison 3.0 compatibility
+- [ ] Overloaded functions
+- [ ] Functions as first-class citizens
+- [x] super
+- [ ] initializers (Probably something like `New(MyClass, "Arg 1", 1, 3)`)
+- [ ] direct JVM bytecode output, no more Jasmin
+- [x] better CLI interface
+- [x] fix bison 3.0 compatibility

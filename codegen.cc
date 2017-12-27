@@ -824,7 +824,7 @@ list<string> codegen(string dir, string fileName, ASTDecls* tree) {
   for (auto it = classes.begin();
        it != classes.end();
        ++it) {
-    string n = dir + (*it)->Name + ".jsm";
+    string n = (dir == "." ? "" : dir) + (*it)->Name + ".jsm";
     FILE *f = fopen(n.c_str(), "w");
     CGScope *s = new CGScope(f);
     s->currentClass = *it;
@@ -837,7 +837,7 @@ list<string> codegen(string dir, string fileName, ASTDecls* tree) {
   for (auto it = interfaces.begin();
        it != interfaces.end();
        ++it) {
-    string n = dir + (*it)->Name + ".jsm";
+    string n = (dir == "." ? "" : dir) + (*it)->Name + ".jsm";
     FILE *f = fopen(n.c_str(), "w");
     CGScope *s = new CGScope(f);
     s->currentInterface = *it;
