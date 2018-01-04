@@ -364,11 +364,14 @@ void codegenFunctionCall(ASTFunctionCall *fcall, CGScope *gs) {
    && !gs->currentClass->isGlobal
    && (member = gs->currentClass->lookupMember(fcall->Name))
    && dynamic_cast<ASTFunctionDecl *>(member)) {
-    ASTMemberFunctionCall *mfc = new ASTMemberFunctionCall(new ASTThis(), fcall->Name, fcall->Actuals);
+    ASTThis *ths = new ASTThis();
+    ths->ExprType = gs->currentClass;
+    ASTMemberFunctionCall *mfc = new ASTMemberFunctionCall(ths, fcall->Name, fcall->Actuals);
     mfc->Decl = fcall->Decl;
     mfc->ExprType = fcall->ExprType;
     codegenMemberFunctionCall(mfc, gs);
     delete mfc;
+    delete ths;
   } else {
     ASTFunctionDecl *fn = dynamic_cast<ASTFunctionDecl *>(fcall->Decl);
     ASTExprs *actuals = fcall->Actuals;
@@ -392,12 +395,14 @@ void codegenVariable(ASTVariable *var, CGScope *gs) {
    && !gs->currentClass->isGlobal
    && (member = gs->currentClass->lookupMember(var->Name))
    && dynamic_cast<ASTVarDecl *>(member)) {
-    ASTFieldExpr *fe = new ASTFieldExpr(new ASTThis(), var->Name);
+    ASTThis *ths = new ASTThis();
+    ASTFieldExpr *fe = new ASTFieldExpr(ths, var->Name);
     fe->_RightDecl = dynamic_cast<ASTVarDecl *>(var->Decl);
     fe->_LeftDecl = gs->currentClass;
     fe->ExprType = var->ExprType;
     codegenFieldExpr(fe, gs);
     delete fe;
+    delete ths;
   } else {
     ASTClassableDecl *clsable = dynamic_cast<ASTClassableDecl *>(var->Decl);
     ASTClassDecl *cls = clsable->Class;
@@ -621,12 +626,11 @@ int countVarDecls(ASTStmt *s) {
     int count = blk->Decls->size(); // assumed to be all var decls
     for (auto it = blk->Stmts->begin();
 	 it != blk->Stmts->end();
-	 ++it) {
-      count += countVarDecls(*it);
-    }
+	 ++it) count += countVarDecls(*it);
     return count;
-  } else if ((ifs = dynamic_cast<ASTIf *>(s))) return countVarDecls(ifs->Then)
-						    + countVarDecls(ifs->ElsePart);
+  }
+  else if ((ifs = dynamic_cast<ASTIf *>(s))) return countVarDecls(ifs->Then)
+						  + countVarDecls(ifs->ElsePart);
   else if ((whl = dynamic_cast<ASTWhile *>(s))) return countVarDecls(whl->Stmt);
   else if ((fr = dynamic_cast<ASTFor *>(s))) return countVarDecls(fr->Stmt);
   return 0;
@@ -637,21 +641,21 @@ void codegenFunctionDecl(ASTFunctionDecl *f, CGScope *gs) {
   subgs->currentFunction = f;
   if (f->Class && !f->Class->isGlobal) subgs->variablePool->reserveIndex();
 
-  *gs << ".method\tpublic";
-  if (f->Class && !f->Class->isGlobal) *gs << "\t";
-  else                                 *gs << " static" << "\t";
+  *subgs << ".method\tpublic";
+  if (f->Class && !f->Class->isGlobal) *subgs << "\t";
+  else                                 *subgs << " static\t";
 
   codegenFunctionSignature("", f->Name, f->Formals, f->ReturnType, subgs);
-  *gs << "\n";
+  *subgs << "\n";
 
   for (auto it = f->Formals->begin();
        it != f->Formals->end();
        ++it) subgs->variablePool->add(dynamic_cast<ASTVarDecl *>(*it));
 
-  *gs << "\t.limit stack\t" << stmtStackUse(f->Block, gs) << "\n";
-  *gs << "\t.limit locals\t" << (f->Class ? 1 : 0) + f->Formals->size() + countVarDecls(f->Block) << "\n";
-  codegenBlock(f->Block, subgs);
-  *gs << "\treturn\n.end method\n";
+  *subgs << "\t.limit stack\t" << stmtStackUse(f->Block, subgs) << "\n";
+  *subgs << "\t.limit locals\t" << (f->Class ? 1 : 0) + f->Formals->size() + countVarDecls(f->Block) << "\n";
+  codegenBlock(f->Block, subgs); // where the bug is
+  *subgs << "\treturn\n.end method\n";
 
   delete subgs;
 }
@@ -820,11 +824,12 @@ list<string> codegen(string dir, string fileName, ASTDecls* tree) {
   classes.push_front(cd);
 
   list<string> fileNames;
+  string baseDir = dir == "." ? "" : dir;
 
   for (auto it = classes.begin();
        it != classes.end();
        ++it) {
-    string n = (dir == "." ? "" : dir) + (*it)->Name + ".jsm";
+    string n = baseDir + (*it)->Name + ".jsm";
     FILE *f = fopen(n.c_str(), "w");
     CGScope *s = new CGScope(f);
     s->currentClass = *it;
@@ -837,7 +842,7 @@ list<string> codegen(string dir, string fileName, ASTDecls* tree) {
   for (auto it = interfaces.begin();
        it != interfaces.end();
        ++it) {
-    string n = (dir == "." ? "" : dir) + (*it)->Name + ".jsm";
+    string n = baseDir + (*it)->Name + ".jsm";
     FILE *f = fopen(n.c_str(), "w");
     CGScope *s = new CGScope(f);
     s->currentInterface = *it;
