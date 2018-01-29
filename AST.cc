@@ -54,9 +54,6 @@ ASTClassDecl * ASTClassDecl::superClass() {
   return dynamic_cast<ASTClassDecl *>(BaseClass);
 }
 
-// TODO: inf loop causes segfault when a type has a member that is also a type.
-// solution: the below function
-
 bool seen(Base *b, set<Base *> *seenPtrs) {
   bool v = seenPtrs->count(b) > 0;
   seenPtrs->insert(b);
