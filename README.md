@@ -20,7 +20,6 @@ Ani is a work in progress. It is extremely limited, but aims to be a complete
 language. Below are a number of improvements that will be made in the near
 future:
 
-- [ ] Short-circuiting logical operators
 - [ ] Ensure builtins have the same calling semantics as user-defined functions
 - [ ] Java interop
   - possible syntax: `JavaVirtual(GetStatic("java/lang/System/out", "Ljava/io/PrintStream"), "java/io/PrintStream/println(I)V", -2000);`

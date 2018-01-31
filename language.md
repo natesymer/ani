@@ -134,37 +134,15 @@ Ani is a (mostly) strongly typed language.
 Ani supports four builtin types, `string`, `bool`, `int`, and `double`. It also
 supports named types: user-defined classes and interfaces. Ani also supports
 arrays, whose element types can be any of the previously mentioned types in
-addition to array types. Ani also supports a type called `void` solely for
-functions that don't return anything.
-
-### Equality
-
-If a type `A` is equivalent to a type `B`, an expression of either type can be
-substituted for the other in any situation. Two types are equivalent iff they
-are the same exact type. This also applies to arrays (type equivalence is then
-checked for the element type, which may be an array - recursive structural
-equivalence). Named types are equal iff they share the same name (named
-equivalence).
-
-### Compatibility
-
-Compatibility is a unidirectional relationship; If type `A` is compatible with type
-`B`, then an expression of type `A` can be substituted where an expression of type
-`B` is expected. Nothing is implied about the reverse direction. Two equivalent types are type compatible in both directions. Type equivalent types are also type
-compatible.
-
-A subclass is compatible with its parent type, but not the reverse. A class is
-compatible with any interfaces it implements. The `null` type is compatible with
-all named types. Operations such as assignment and parameter passing allow for
-not just equivalent types but compatible types.
-
-The recursive structural equality does not have a parallel in type compatibility.
+addition to array types. Ani also supports a type called `void` solely used for
+return types for functions that don't return anything.
 
 ### Arrays
 
 Arrays are created with the builtin `NewArray(N, type)` where `N` is a positive,
 non-zero integer representing the size of the array (number of elements). `type`
-is any type other than `void`. Once created, arrays' sizes cannot change.
+is any type other than `void`, including array types. Once created, arrays' sizes
+cannot change.
 
 Arrays' indeces start at 0, and are indexed through the subscript operator, which 
 takes a positive integer. Arrays support the `length()` method, which returns
@@ -183,14 +161,37 @@ Strings are implemented as Java String objects and are therefore references.
 
 Objects are implemented as references. Objects are dynamically allocated on the
 heap using the `New()` builtin function. The type passed to `New()` should be a
-class (not an interface). To access fields of the object, use the `.` operator.
-Methods are called via `object.method()` where `object` is a named type
-(a class or interface) that implements `method`. The field must be accessible
-in the scope in which it's accessed (see Classes section).
+class (not an interface). To access fields (see Classes section) of the object,
+use the `.` operator. Methods are called via `object.method()` where `object` is
+a named type (a class or interface) that implements `method`. The field must be
+accessible in the scope in which it's accessed (see Classes section).
 
 Object assignment is shallow (assigning an object to a variable assigns the
 reference, not a copy). Objects may be assigned only to variables with interface
 or class types.
+
+### Equality
+
+If a type `A` is equivalent to a type `B`, an expression of either type can be
+substituted for the other in any situation. Two types are equivalent iff they
+are the same exact type. For arrays, type equality is defined as type equality
+between element types (which themselves may be array types) - recursive structural
+equivalence. Named types are equal iff they share the same name (named equivalence).
+
+### Compatibility
+
+Compatibility is a unidirectional relationship; If type `A` is compatible with type
+`B`, then an expression of type `A` can be substituted where an expression of type
+`B` is expected. *Nothing is implied about the reverse direction*. Two equivalent types
+are type compatible in both directions.
+
+A subclass is compatible with its parent type, but not the reverse. A class is
+compatible with any interfaces it implements. The `null` type is compatible with
+all named types. Operations such as assignment and parameter passing allow for
+not just equivalent types but compatible types.
+
+The recursive structural equality for arrays does not have a parallel in type
+compatibility.
 
 Functions
 ==
@@ -200,8 +201,8 @@ Functions
 - Formals: The variable declarations that make up part of the function signature
 - Acutals: Values passed in a function invocation that correspond to formals
 
-Function declarations consist of a return type, name, and formals. Functions may
-be declared globally or inside a class. They may not be nested. Formals must be
+Function declarations consist of a return type, name, formals, and a body. Functions
+may be declared globally or inside a class. They may not be nested. Formals must be
 uniquely named. Function overloading is illegal.
 
 Formals are declared in a separate scope from local variables. Any return
@@ -310,7 +311,7 @@ Expressions evaulate as follows:
 - Unary minus (`-`) takes an `int` or `double`. The result is the same type as the operand.
 - Binary relational operators (`<`, `>`, `<=`, `>=`) take either two `int`s or `doubles`. The result is a `bool`.
 - Binary equality operators (`!=` and `==`) take two operands that are type compatible in at least one direction. The result is a `bool`.
-- All operands to binary and unary logical operators (`&&`, `||`, and `!`) are `bool`s. The result type is a `bool`. Logical operators do no short-circuit.
+- All operands to binary and unary logical operators (`&&`, `||`, and `!`) are `bool`s. The result type is a `bool`. Logical operators do not short-circuit.
 - The assignment operator takes an assignable location on the left and an expression on the right. Assignable locations are variables. The right side of an assignment must be type compatible with the left side.
 
 #### Precedence
