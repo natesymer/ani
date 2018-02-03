@@ -181,8 +181,7 @@ void codegenOp(ASTExpr *left, ASTExpr *right, ASTOp op, CGScope *gs) {
     return;
   }
 
-  if (!right && op == OpSubtract) *gs << "\ticonst_0\n";
-  codegenExpr(left, gs);
+  if (left) codegenExpr(left, gs);
   if (right) codegenExpr(right, gs);
 
   switch (op) {
@@ -214,7 +213,8 @@ void codegenOp(ASTExpr *left, ASTExpr *right, ASTOp op, CGScope *gs) {
       break;
     }
     case OpSubtract: {
-      *gs << "\t" << javaTypePrefix(left->ExprType) << "sub\n";
+      if (!right) *gs << "\t" << javaTypePrefix(left->ExprType) << "neg\n";
+      else        *gs << "\t" << javaTypePrefix(left->ExprType) << "sub\n";
       break;
     }
     case OpMultiply: {
@@ -260,6 +260,7 @@ void codegenOp(ASTExpr *left, ASTExpr *right, ASTOp op, CGScope *gs) {
       break;
     }
     case OpIndex: {
+      // FIXME: multidimensional arrays could break here...
       TyArray *ary = dynamic_cast<TyArray *>(left->ExprType);
       if (ary) {
         *gs << "\t" << javaTypePrefix(ary->Type) << "aload\n";
